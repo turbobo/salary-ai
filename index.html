@@ -4,9 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI薪资计算器</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/@babel/standalone@7.29.7/babel.min.js"></script>
+    <script>
+        window.addEventListener('error', function(e) {
+            if (e.target && e.target.tagName === 'SCRIPT') {
+                var root = document.getElementById('root');
+                if (root) root.innerHTML = '<div style="text-align:center;padding:60px 20px"><h2 style="color:#e74c3c">脚本加载失败</h2><p style="color:#666;margin:16px 0">CDN 资源无法加载，请刷新页面重试。</p><p style="color:#999;font-size:13px">' + (e.target.src||'') + '</p></div>';
+            }
+        }, true);
+    </script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -936,8 +944,9 @@
     </style>
 </head>
 <body>
-    <div id="root"></div>
-    <script type="text/babel">
+    <div id="root"><div style="text-align:center;padding:80px 20px;font-family:sans-serif"><p style="color:#999">加载中...</p></div></div>
+    <noscript><div style="text-align:center;padding:60px 20px"><h2>请启用 JavaScript</h2><p>本页面需要 JavaScript 才能正常运行。</p></div></noscript>
+    <script type="text/babel" data-presets="react">
         const { useState, useMemo, useEffect, useCallback, useRef } = React;
 
         // ===== 工具函数 =====
@@ -2728,7 +2737,20 @@
             );
         }
 
-        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+        // Error boundary: catch rendering errors
+        window.onerror = function(msg, url, line, col, err) {
+            var root = document.getElementById('root');
+            if (root && root.innerHTML.indexOf('加载中') !== -1) {
+                root.innerHTML = '<div style="text-align:center;padding:60px 20px;font-family:sans-serif"><h2 style="color:#e74c3c">页面加载出错</h2><p style="color:#666;margin:16px 0">' + msg + '</p><p style="color:#999;font-size:13px">Line: ' + line + '</p><button onclick="location.reload()" style="margin-top:16px;padding:8px 24px;border:1px solid #ddd;border-radius:6px;background:#fff;cursor:pointer">刷新页面</button></div>';
+            }
+        };
+
+        try {
+            const root = ReactDOM.createRoot(document.getElementById('root'));
+            root.render(<App />);
+        } catch (err) {
+            document.getElementById('root').innerHTML = '<div style="text-align:center;padding:60px 20px;font-family:sans-serif"><h2 style="color:#e74c3c">React 渲染失败</h2><p style="color:#666;margin:16px 0">' + err.message + '</p><button onclick="location.reload()" style="margin-top:16px;padding:8px 24px;border:1px solid #ddd;border-radius:6px;background:#fff;cursor:pointer">刷新页面</button></div>';
+        }
     </script>
 </body>
 </html>
