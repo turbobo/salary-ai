@@ -1,0 +1,2734 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI薪资计算器</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: #f0f2f5;
+            color: #333;
+            line-height: 1.6;
+        }
+        .app-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+        .app-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        .app-header h1 { font-size: 28px; color: #1a1a1a; margin-bottom: 8px; }
+        .app-header p { color: #666; font-size: 14px; }
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #1a1a1a;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .card-title .icon {
+            width: 24px; height: 24px;
+            background: #e8f4fd;
+            border-radius: 6px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px;
+        }
+        .card-title .actions {
+            margin-left: auto;
+            display: flex;
+            gap: 8px;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 12px;
+        }
+        .form-grid-wide {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 12px;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+        .form-group label {
+            font-size: 12px;
+            color: #666;
+            font-weight: 500;
+        }
+        .form-group input, .form-group select {
+            padding: 7px 10px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 13px;
+            transition: border-color 0.2s;
+            outline: none;
+            width: 100%;
+        }
+        .form-group input:focus, .form-group select:focus {
+            border-color: #4096ff;
+            box-shadow: 0 0 0 2px rgba(64, 150, 255, 0.1);
+        }
+        .form-group input.invalid {
+            border-color: #ff4d4f;
+            box-shadow: 0 0 0 2px rgba(255, 77, 79, 0.1);
+        }
+        .form-group .hint {
+            font-size: 11px;
+            color: #ff4d4f;
+        }
+        .form-group input[type="number"] { -moz-appearance: textfield; }
+        .form-group input::-webkit-outer-spin-button,
+        .form-group input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .btn {
+            padding: 7px 16px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .btn-primary { background: #4096ff; color: #fff; }
+        .btn-primary:hover { background: #2b7de9; }
+        .btn-success { background: #52c41a; color: #fff; }
+        .btn-success:hover { background: #43a814; }
+        .btn-danger { background: #ff4d4f; color: #fff; }
+        .btn-danger:hover { background: #d9363e; }
+        .btn-outline { background: #fff; color: #4096ff; border: 1px solid #4096ff; }
+        .btn-outline:hover { background: #e8f4fd; }
+        .btn-sm { padding: 4px 10px; font-size: 12px; }
+        .btn-group { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .radio-group {
+            display: flex; gap: 16px; align-items: center;
+        }
+        .radio-group label {
+            display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 14px;
+        }
+        .result-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            margin-top: 12px;
+        }
+        .result-table th, .result-table td {
+            padding: 9px 10px;
+            text-align: right;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .result-table th {
+            background: #fafafa;
+            font-weight: 600;
+            color: #333;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+        .result-table th:first-child, .result-table td:first-child { text-align: center; }
+        .result-table tr:hover td { background: #f8fbff; }
+        .result-table .total-row td {
+            font-weight: 600;
+            background: #f0f7ff;
+            border-top: 2px solid #4096ff;
+        }
+        .result-table .disabled-row td { color: #ccc; }
+        .result-table .bracket-change td {
+            border-left: 3px solid #faad14;
+        }
+        .result-table .sticky-col {
+            position: sticky;
+            left: 0;
+            background: #fff;
+            z-index: 1;
+        }
+        .result-table th.sticky-col {
+            background: #fafafa;
+            z-index: 2;
+        }
+        .result-table .total-row td.sticky-col { background: #f0f7ff; }
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        .summary-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            padding: 16px;
+            color: #fff;
+        }
+        .summary-card.green { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: #1a1a1a; }
+        .summary-card.blue { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: #1a1a1a; }
+        .summary-card.orange { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: #1a1a1a; }
+        .summary-card.teal { background: linear-gradient(135deg, #30cfd0 0%, #330867 100%); color: #fff; }
+        .summary-card .label { font-size: 12px; opacity: 0.85; margin-bottom: 4px; }
+        .summary-card .value { font-size: 22px; font-weight: 700; }
+        .summary-card .sub { font-size: 11px; opacity: 0.7; margin-top: 4px; }
+        .table-scroll { overflow-x: auto; }
+        .info-text { font-size: 12px; color: #999; margin-top: 4px; }
+        .warning-text {
+            font-size: 13px;
+            color: #ff4d4f;
+            margin-top: 12px;
+            background: #fff2f0;
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid #ffccc7;
+        }
+        .section-divider { border: none; border-top: 1px dashed #e0e0e0; margin: 16px 0; }
+
+        .global-settings {
+            background: #f8fafc;
+            border: 1px solid #e8edf2;
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        .global-settings-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .months-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 16px;
+        }
+        .month-card {
+            background: #fafbfc;
+            border: 1px solid #e8edf2;
+            border-radius: 10px;
+            padding: 14px;
+            transition: all 0.2s;
+        }
+        .month-card.disabled {
+            opacity: 0.45;
+            pointer-events: none;
+        }
+        .month-card.active {
+            border-color: #4096ff;
+            background: #f0f7ff;
+        }
+        .month-card-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            user-select: none;
+        }
+        .month-card-header input[type="checkbox"] {
+            width: 16px; height: 16px; cursor: pointer;
+        }
+        .month-card-header .month-label { flex: 1; }
+        .month-card-header .toggle-icon {
+            font-size: 12px;
+            color: #999;
+            transition: transform 0.2s;
+        }
+        .month-card-header .toggle-icon.collapsed {
+            transform: rotate(-90deg);
+        }
+        .month-card-body {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+            overflow: hidden;
+            transition: max-height 0.3s ease, opacity 0.3s ease;
+        }
+        .month-card-body.collapsed {
+            max-height: 0;
+            opacity: 0;
+            margin: 0;
+        }
+        .month-card-body .form-group label { font-size: 11px; }
+        .month-card-body .form-group input { font-size: 12px; padding: 5px 8px; }
+
+        .month-selector {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .month-chip {
+            padding: 5px 12px;
+            border-radius: 16px;
+            border: 1px solid #e0e0e0;
+            background: #fff;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+            user-select: none;
+        }
+        .month-chip:hover { border-color: #4096ff; color: #4096ff; }
+        .month-chip.selected { background: #4096ff; color: #fff; border-color: #4096ff; }
+        .month-chip.has-data { border-color: #52c41a; }
+        .month-chip.selected.has-data { background: #4096ff; border-color: #4096ff; }
+
+        .sidebar-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.3);
+            z-index: 999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        .sidebar-overlay.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 220px;
+            height: 100vh;
+            background: #fff;
+            z-index: 1000;
+            box-shadow: 2px 0 12px rgba(0,0,0,0.1);
+            transform: translateX(-100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+        .sidebar.open {
+            transform: translateX(0);
+        }
+        .sidebar-header {
+            padding: 20px 16px 12px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .sidebar-header h2 {
+            font-size: 16px;
+            color: #1a1a1a;
+            font-weight: 600;
+        }
+        .sidebar-close {
+            width: 28px; height: 28px;
+            border: none;
+            background: #f5f5f5;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: #666;
+            transition: background 0.2s;
+        }
+        .sidebar-close:hover { background: #e8e8e8; }
+        .sidebar-nav {
+            padding: 12px 0;
+            flex: 1;
+        }
+        .sidebar-nav a {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 20px;
+            font-size: 14px;
+            color: #333;
+            text-decoration: none;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+        .sidebar-nav a:hover {
+            background: #f0f7ff;
+            color: #4096ff;
+            border-left-color: #4096ff;
+        }
+        .sidebar-nav a .nav-icon {
+            font-size: 16px;
+            width: 20px;
+            text-align: center;
+        }
+        .sidebar-nav a.ai-nav-link {
+            background: linear-gradient(90deg, rgba(102,126,234,0.06) 0%, transparent 100%);
+            color: #667eea;
+            font-weight: 600;
+        }
+        .sidebar-nav a.ai-nav-link:hover {
+            background: linear-gradient(90deg, rgba(102,126,234,0.12) 0%, transparent 100%);
+            border-left-color: #667eea;
+            color: #764ba2;
+        }
+        .menu-toggle {
+            position: fixed;
+            top: 16px;
+            left: 16px;
+            z-index: 998;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            border: none;
+            background: #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            transition: all 0.2s;
+        }
+        .menu-toggle:hover { background: #f0f7ff; box-shadow: 0 2px 12px rgba(0,0,0,0.15); }
+        .menu-toggle span {
+            display: block;
+            width: 18px;
+            height: 2px;
+            background: #333;
+            border-radius: 1px;
+            transition: all 0.3s;
+        }
+        .menu-toggle.open span:nth-child(1) { transform: rotate(45deg) translate(4px, 4px); }
+        .menu-toggle.open span:nth-child(2) { opacity: 0; }
+        .menu-toggle.open span:nth-child(3) { transform: rotate(-45deg) translate(4px, -4px); }
+
+        .badge {
+            display: inline-block;
+            font-size: 10px;
+            padding: 1px 6px;
+            border-radius: 10px;
+            background: #f0f0f0;
+            color: #666;
+            margin-left: 6px;
+            vertical-align: middle;
+        }
+
+        /* ===== AI Feature Styles ===== */
+
+        .ai-badge {
+            display: inline-block;
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .ai-panel {
+            background: #fff;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 12px rgba(102, 126, 234, 0.12);
+            overflow: hidden;
+            border: 1px solid rgba(102, 126, 234, 0.15);
+        }
+
+        .ai-panel-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 16px 24px;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            user-select: none;
+            transition: opacity 0.2s;
+        }
+        .ai-panel-header:hover { opacity: 0.95; }
+        .ai-panel-header h3 {
+            font-size: 16px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .ai-panel-header .toggle-arrow {
+            font-size: 14px;
+            transition: transform 0.3s;
+        }
+        .ai-panel-header .toggle-arrow.collapsed {
+            transform: rotate(-90deg);
+        }
+
+        .ai-panel-body {
+            padding: 0;
+            max-height: 5000px;
+            overflow: hidden;
+            transition: max-height 0.4s ease, padding 0.4s ease;
+        }
+        .ai-panel-body.collapsed {
+            max-height: 0;
+            padding: 0;
+        }
+        .ai-panel-body.expanded {
+            padding: 20px 24px;
+        }
+
+        .ai-tabs {
+            display: flex;
+            gap: 0;
+            border-bottom: 2px solid #f0f0f0;
+            margin-bottom: 20px;
+            overflow-x: auto;
+        }
+        .ai-tab {
+            padding: 10px 20px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 14px;
+            color: #666;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.2s;
+            white-space: nowrap;
+            font-weight: 500;
+        }
+        .ai-tab:hover {
+            color: #667eea;
+        }
+        .ai-tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+            font-weight: 600;
+        }
+
+        .ai-feature-card {
+            background: #fafbff;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+
+        .ai-input-area {
+            width: 100%;
+            min-height: 90px;
+            padding: 12px 16px;
+            border: 2px solid rgba(102, 126, 234, 0.25);
+            border-radius: 10px;
+            font-size: 14px;
+            resize: vertical;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            font-family: inherit;
+            line-height: 1.6;
+            background: #fff;
+        }
+        .ai-input-area:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.12);
+        }
+        .ai-input-area::placeholder {
+            color: #b0b8d0;
+        }
+
+        .ai-loading {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 20px;
+            color: #667eea;
+            font-size: 14px;
+        }
+        .ai-loading-dots {
+            display: flex;
+            gap: 5px;
+        }
+        .ai-loading-dots span {
+            width: 8px;
+            height: 8px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            animation: ai-dot-bounce 1.4s infinite ease-in-out both;
+        }
+        .ai-loading-dots span:nth-child(1) { animation-delay: -0.32s; }
+        .ai-loading-dots span:nth-child(2) { animation-delay: -0.16s; }
+        .ai-loading-dots span:nth-child(3) { animation-delay: 0s; }
+
+        @keyframes ai-dot-bounce {
+            0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+
+        .ai-skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: ai-shimmer 1.5s infinite;
+            border-radius: 6px;
+            height: 16px;
+            margin-bottom: 12px;
+        }
+        .ai-skeleton.title { height: 22px; width: 50%; margin-bottom: 16px; }
+        .ai-skeleton.short { width: 35%; }
+        .ai-skeleton.medium { width: 65%; }
+        .ai-skeleton.long { width: 90%; }
+
+        @keyframes ai-shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .ai-result {
+            background: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            border: 1px solid #e8edf5;
+            line-height: 1.9;
+            font-size: 14px;
+        }
+        .ai-result h2, .ai-result h3 {
+            color: #1a1a1a;
+            margin: 16px 0 8px;
+        }
+        .ai-result h2:first-child, .ai-result h3:first-child {
+            margin-top: 0;
+        }
+        .ai-result ul, .ai-result ol {
+            padding-left: 20px;
+            margin: 8px 0;
+        }
+        .ai-result li {
+            margin-bottom: 4px;
+        }
+        .ai-result strong {
+            color: #333;
+        }
+        .ai-result p {
+            margin: 8px 0;
+        }
+
+        .ai-compare {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 16px;
+            align-items: stretch;
+        }
+        .ai-compare-col {
+            background: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            border: 2px solid #e8edf5;
+            transition: border-color 0.3s;
+        }
+        .ai-compare-col.winner {
+            border-color: #52c41a;
+            background: #f6ffed;
+        }
+        .ai-compare-col h4 {
+            font-size: 15px;
+            margin-bottom: 12px;
+            color: #333;
+        }
+        .ai-compare-col .amount {
+            font-size: 28px;
+            font-weight: 700;
+            color: #333;
+            margin: 8px 0;
+        }
+        .ai-compare-col .detail {
+            font-size: 13px;
+            color: #666;
+            margin: 4px 0;
+        }
+        .ai-compare-vs {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: 700;
+            color: #999;
+        }
+        .ai-savings-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #52c41a, #73d13d);
+            color: #fff;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: 12px;
+        }
+
+        .ai-extracted-data {
+            background: #f0f5ff;
+            border: 1px solid #d0e0ff;
+            border-radius: 10px;
+            padding: 16px;
+            margin: 16px 0;
+        }
+        .ai-extracted-data h4 {
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .ai-extracted-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .ai-extracted-item {
+            background: #fff;
+            border: 1px solid #d0e0ff;
+            border-radius: 8px;
+            padding: 6px 14px;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .ai-extracted-item .item-label {
+            color: #666;
+            font-size: 12px;
+        }
+        .ai-extracted-item .item-value {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .ai-settings-bar {
+            background: #fff;
+            border-radius: 12px;
+            padding: 16px 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .ai-settings-bar label {
+            font-size: 13px;
+            color: #666;
+            font-weight: 500;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .ai-settings-bar input {
+            flex: 1;
+            min-width: 200px;
+            padding: 7px 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 13px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .ai-settings-bar input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+        }
+        .ai-settings-status {
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .ai-settings-status.connected { color: #52c41a; }
+        .ai-settings-status.demo { color: #faad14; }
+
+        .ai-score-display {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin: 12px 0;
+        }
+        .ai-score-circle {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            font-weight: 700;
+            color: #fff;
+            flex-shrink: 0;
+        }
+        .ai-score-circle.high { background: linear-gradient(135deg, #52c41a, #73d13d); }
+        .ai-score-circle.medium { background: linear-gradient(135deg, #faad14, #ffc53d); }
+        .ai-score-circle.low { background: linear-gradient(135deg, #ff4d4f, #ff7875); }
+        .ai-score-info {
+            flex: 1;
+        }
+        .ai-score-info .title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+        }
+        .ai-score-info .desc {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .ai-metric-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .ai-metric-row:last-child { border-bottom: none; }
+        .ai-metric-label {
+            font-size: 13px;
+            color: #666;
+        }
+        .ai-metric-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+        }
+        .ai-metric-value.positive { color: #52c41a; }
+        .ai-metric-value.negative { color: #ff4d4f; }
+
+        .ai-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            border: none;
+            padding: 9px 22px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .ai-btn:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(102,126,234,0.3); }
+        .ai-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+        .ai-section-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #333;
+            margin: 16px 0 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ai-suggestion-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .ai-suggestion-list li {
+            padding: 10px 14px;
+            background: #fff;
+            border: 1px solid #f0f0f0;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            font-size: 13px;
+            line-height: 1.7;
+            color: #444;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+        .ai-suggestion-list li .num {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 700;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .ai-markdown-content h1 { font-size: 20px; margin: 16px 0 10px; }
+        .ai-markdown-content h2 { font-size: 17px; margin: 14px 0 8px; color: #333; }
+        .ai-markdown-content h3 { font-size: 15px; margin: 12px 0 6px; color: #444; }
+        .ai-markdown-content p { margin: 8px 0; line-height: 1.8; }
+        .ai-markdown-content ul, .ai-markdown-content ol { padding-left: 20px; margin: 8px 0; }
+        .ai-markdown-content li { margin-bottom: 6px; line-height: 1.7; }
+        .ai-markdown-content strong { color: #667eea; }
+        .ai-markdown-content code {
+            background: #f0f0f5;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .ai-markdown-content blockquote {
+            border-left: 3px solid #667eea;
+            padding-left: 12px;
+            margin: 12px 0;
+            color: #666;
+            font-style: italic;
+        }
+
+        .ai-demo-notice {
+            background: #fffbe6;
+            border: 1px solid #ffe58f;
+            border-radius: 8px;
+            padding: 10px 14px;
+            margin-bottom: 16px;
+            font-size: 12px;
+            color: #ad6800;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .app-container { padding: 12px; }
+            .months-grid { grid-template-columns: 1fr; }
+            .month-card-body { grid-template-columns: 1fr 1fr; }
+            .summary-cards { grid-template-columns: 1fr 1fr; }
+            .form-grid-wide { grid-template-columns: 1fr 1fr; }
+            .global-settings-title { flex-direction: column; align-items: flex-start; }
+            .ai-compare { grid-template-columns: 1fr; }
+            .ai-compare-vs { padding: 8px 0; }
+            .ai-tabs { gap: 0; }
+            .ai-tab { padding: 8px 14px; font-size: 13px; }
+            .ai-settings-bar { flex-direction: column; align-items: stretch; }
+            .ai-panel-body.expanded { padding: 16px; }
+            .ai-score-display { flex-direction: column; text-align: center; }
+        }
+        @media (max-width: 480px) {
+            .summary-cards { grid-template-columns: 1fr; }
+            .form-grid { grid-template-columns: 1fr 1fr; }
+            .month-card-body { grid-template-columns: 1fr; }
+            .ai-extracted-items { flex-direction: column; }
+            .ai-compare-col .amount { font-size: 22px; }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        const { useState, useMemo, useEffect, useCallback, useRef } = React;
+
+        // ===== 工具函数 =====
+        function roundToFen(n) {
+            return Math.round(n * 100) / 100;
+        }
+
+        function formatCurrency(n) {
+            return n.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function clamp(value, min, max) {
+            return Math.max(min, Math.min(max, value));
+        }
+
+        function parseNumericInput(value) {
+            if (value === '' || value === null || value === undefined) return null;
+            const n = Number(value);
+            return isNaN(n) ? null : n;
+        }
+
+        // ===== 城市预设数据 =====
+        const CITY_PRESETS = {
+            beijing: {
+                name: '北京', year: 2024,
+                socialInsurance: {
+                    pension: { rate: 8, min: 6326, max: 35283 },
+                    medical: { rate: 2, addition: 3, min: 6326, max: 35283 },
+                    unemployment: { rate: 0.5, min: 6326, max: 35283 },
+                },
+                housingFund: { rateMin: 5, rateMax: 12, min: 2420, max: 35283 },
+                taxThreshold: 5000,
+            },
+            shanghai: {
+                name: '上海', year: 2024,
+                socialInsurance: {
+                    pension: { rate: 8, min: 7384, max: 36921 },
+                    medical: { rate: 2, addition: 0, min: 7384, max: 36921 },
+                    unemployment: { rate: 0.5, min: 7384, max: 36921 },
+                },
+                housingFund: { rateMin: 5, rateMax: 12, min: 2690, max: 36921 },
+                taxThreshold: 5000,
+            },
+            guangzhou: {
+                name: '广州', year: 2024,
+                socialInsurance: {
+                    pension: { rate: 8, min: 5284, max: 27501 },
+                    medical: { rate: 2, addition: 0, min: 5284, max: 27501 },
+                    unemployment: { rate: 0.2, min: 5284, max: 27501 },
+                },
+                housingFund: { rateMin: 5, rateMax: 12, min: 2300, max: 41535 },
+                taxThreshold: 5000,
+            },
+            shenzhen: {
+                name: '深圳', year: 2024,
+                socialInsurance: {
+                    pension: { rate: 8, min: 2360, max: 27927 },
+                    medical: { rate: 2, addition: 0, min: 2360, max: 27927 },
+                    unemployment: { rate: 0.3, min: 2360, max: 27927 },
+                },
+                housingFund: { rateMin: 5, rateMax: 12, min: 2360, max: 41190 },
+                taxThreshold: 5000,
+            },
+            hangzhou: {
+                name: '杭州', year: 2024,
+                socialInsurance: {
+                    pension: { rate: 8, min: 4812, max: 27216 },
+                    medical: { rate: 2, addition: 0, min: 4812, max: 27216 },
+                    unemployment: { rate: 0.5, min: 4812, max: 27216 },
+                },
+                housingFund: { rateMin: 5, rateMax: 12, min: 2280, max: 39852 },
+                taxThreshold: 5000,
+            },
+            chengdu: {
+                name: '成都', year: 2024,
+                socialInsurance: {
+                    pension: { rate: 8, min: 4246, max: 23826 },
+                    medical: { rate: 2, addition: 0, min: 4246, max: 23826 },
+                    unemployment: { rate: 0.4, min: 4246, max: 23826 },
+                },
+                housingFund: { rateMin: 5, rateMax: 12, min: 2280, max: 32580 },
+                taxThreshold: 5000,
+            },
+            custom: {
+                name: '自定义', year: null,
+                socialInsurance: {
+                    pension: { rate: 8, min: 0, max: 99999 },
+                    medical: { rate: 2, addition: 0, min: 0, max: 99999 },
+                    unemployment: { rate: 0.5, min: 0, max: 99999 },
+                },
+                housingFund: { rateMin: 5, rateMax: 12, min: 0, max: 99999 },
+                taxThreshold: 5000,
+            },
+        };
+
+        // ===== 个税累进税率表 =====
+        const TAX_BRACKETS = [
+            { min: 0, max: 36000, rate: 0.03, deduction: 0 },
+            { min: 36000, max: 144000, rate: 0.10, deduction: 2520 },
+            { min: 144000, max: 300000, rate: 0.20, deduction: 16920 },
+            { min: 300000, max: 420000, rate: 0.25, deduction: 31920 },
+            { min: 420000, max: 660000, rate: 0.30, deduction: 52920 },
+            { min: 660000, max: 960000, rate: 0.35, deduction: 85920 },
+            { min: 960000, max: Infinity, rate: 0.45, deduction: 181920 },
+        ];
+
+        // ===== 年终奖单独计税税率表 =====
+        const BONUS_TAX_BRACKETS = [
+            { min: 0, max: 3000, rate: 0.03, deduction: 0 },
+            { min: 3000, max: 12000, rate: 0.10, deduction: 210 },
+            { min: 12000, max: 25000, rate: 0.20, deduction: 1410 },
+            { min: 25000, max: 35000, rate: 0.25, deduction: 2660 },
+            { min: 35000, max: 55000, rate: 0.30, deduction: 4410 },
+            { min: 55000, max: 80000, rate: 0.35, deduction: 7160 },
+            { min: 80000, max: Infinity, rate: 0.45, deduction: 15160 },
+        ];
+
+        // ===== 核心计算函数 =====
+        function calcTax(taxableIncome) {
+            for (const bracket of TAX_BRACKETS) {
+                if (taxableIncome <= bracket.max) {
+                    return roundToFen(taxableIncome * bracket.rate - bracket.deduction);
+                }
+            }
+            return 0;
+        }
+
+        function getTaxBracketIndex(taxableIncome) {
+            for (let i = 0; i < TAX_BRACKETS.length; i++) {
+                if (taxableIncome <= TAX_BRACKETS[i].max) return i;
+            }
+            return TAX_BRACKETS.length - 1;
+        }
+
+        function calcBonusTaxSeparate(bonus) {
+            if (bonus <= 0) return 0;
+            const monthlyAvg = bonus / 12;
+            for (const bracket of BONUS_TAX_BRACKETS) {
+                if (monthlyAvg <= bracket.max) {
+                    return roundToFen(bonus * bracket.rate - bracket.deduction);
+                }
+            }
+            return 0;
+        }
+
+        function calculateMonthlyResults({ monthlyData, city, annualBonus, bonusTaxMethod, bonusMonth, specialDeduction, enabledMonths, globalParams }) {
+            const monthResults = [];
+            let cumulativeTaxableIncome = 0;
+            let cumulativeTaxPaid = 0;
+            let prevBracketIndex = 0;
+
+            for (let month = 1; month <= 12; month++) {
+                if (!enabledMonths[month]) {
+                    monthResults.push({ month, enabled: false, salary: 0, subsidy: 0, bonus: 0, bonusInThisMonth: 0, pension: 0, medical: 0, unemployment: 0, totalSI: 0, housingFund: 0, totalDeductions: 0, taxableIncome: 0, cumulativeTaxableIncome: 0, monthTax: 0, cumulativeTax: 0, netSalary: 0, bracketChanged: false });
+                    continue;
+                }
+
+                const data = monthlyData[month];
+                const preset = CITY_PRESETS[city];
+
+                const getParam = (field) => {
+                    const v = data[field];
+                    return (v !== null && v !== undefined && v !== '') ? v : globalParams[field];
+                };
+
+                const salary = Number(getParam('salary')) || 0;
+                const pensionRate = (Number(getParam('pensionRate')) || 0) / 100;
+                const medicalRate = (Number(getParam('medicalRate')) || 0) / 100;
+                const unemploymentRate = (Number(getParam('unemploymentRate')) || 0) / 100;
+                const housingFundRate = (Number(getParam('housingFundRate')) || 0) / 100;
+                const siBaseInput = Number(getParam('socialInsuranceBase')) || 0;
+                const hfBaseInput = Number(getParam('housingFundBase')) || 0;
+
+                let pension = 0, medical = 0, unemployment = 0, totalSI = 0, housingFund = 0, totalDeductions = 0;
+                if (salary > 0) {
+                    const siBase = siBaseInput > 0 ? siBaseInput : salary;
+                    const clampedSIBase = (city !== 'custom' && preset.socialInsurance.pension.max > 0)
+                        ? clamp(siBase, preset.socialInsurance.pension.min, preset.socialInsurance.pension.max)
+                        : siBase;
+
+                    pension = roundToFen(clampedSIBase * pensionRate);
+                    medical = roundToFen(clampedSIBase * medicalRate + (preset.socialInsurance.medical.addition || 0));
+                    unemployment = roundToFen(clampedSIBase * unemploymentRate);
+                    totalSI = roundToFen(pension + medical + unemployment);
+
+                    const hfBase = hfBaseInput > 0 ? hfBaseInput : salary;
+                    const clampedHFBase = (city !== 'custom' && preset.housingFund.max > 0)
+                        ? clamp(hfBase, preset.housingFund.min, preset.housingFund.max)
+                        : hfBase;
+                    housingFund = roundToFen(clampedHFBase * housingFundRate);
+
+                    totalDeductions = roundToFen(totalSI + housingFund);
+                }
+
+                const subsidy = Number(data.subsidy) || 0;
+                let monthTaxableIncome = 0;
+                if (salary > 0 || subsidy > 0) {
+                    monthTaxableIncome = roundToFen(salary + subsidy - totalDeductions - preset.taxThreshold - specialDeduction);
+                }
+
+                let bonusInThisMonth = 0;
+                if (bonusTaxMethod === 'combined' && month === bonusMonth) {
+                    bonusInThisMonth = annualBonus;
+                    monthTaxableIncome = roundToFen(monthTaxableIncome + annualBonus);
+                }
+
+                cumulativeTaxableIncome += monthTaxableIncome;
+                const effectiveCumTaxable = Math.max(0, roundToFen(cumulativeTaxableIncome));
+                const cumulativeTax = calcTax(effectiveCumTaxable);
+                const monthTax = roundToFen(Math.max(0, cumulativeTax - cumulativeTaxPaid));
+                cumulativeTaxPaid = roundToFen(cumulativeTaxPaid + monthTax);
+
+                const monthBonus = Number(data.bonus) || 0;
+                const netSalary = roundToFen(salary + subsidy + monthBonus + bonusInThisMonth - totalDeductions - monthTax);
+
+                const currentBracketIndex = getTaxBracketIndex(effectiveCumTaxable);
+                const bracketChanged = month > 1 && currentBracketIndex > prevBracketIndex && effectiveCumTaxable > 0;
+                prevBracketIndex = effectiveCumTaxable > 0 ? currentBracketIndex : prevBracketIndex;
+
+                monthResults.push({
+                    month, enabled: true,
+                    salary, subsidy, bonus: monthBonus,
+                    bonusInThisMonth, pension, medical, unemployment, totalSI,
+                    housingFund, totalDeductions,
+                    taxableIncome: monthTaxableIncome,
+                    cumulativeTaxableIncome: effectiveCumTaxable,
+                    monthTax, cumulativeTax: cumulativeTaxPaid, netSalary,
+                    bracketChanged, bracketIndex: currentBracketIndex,
+                });
+            }
+
+            let bonusTax = 0;
+            if (bonusTaxMethod === 'separate' && annualBonus > 0) {
+                bonusTax = calcBonusTaxSeparate(annualBonus);
+            }
+
+            const enabledResults = monthResults.filter(r => r.enabled);
+            const totalGross = roundToFen(enabledResults.reduce((s, r) => s + r.salary + r.subsidy + r.bonus + r.bonusInThisMonth, 0));
+            const totalSI = roundToFen(enabledResults.reduce((s, r) => s + r.totalSI, 0));
+            const totalHF = roundToFen(enabledResults.reduce((s, r) => s + r.housingFund, 0));
+            const totalTax = roundToFen(cumulativeTaxPaid + bonusTax);
+            const totalNet = roundToFen(
+                enabledResults.reduce((s, r) => s + r.netSalary, 0)
+                + (bonusTaxMethod === 'separate' ? annualBonus - bonusTax : 0)
+            );
+
+            return { monthResults, bonusTax, totalGross, totalSI, totalHF, totalTax, totalNet, annualBonus };
+        }
+
+        // ===== CSV 导出 =====
+        function exportCSV(results, bonusTaxMethod, annualBonus, bonusTax) {
+            const headers = ['月份', '税前工资', '补贴(计税)', '奖金(免税)', '社保扣除', '公积金扣除', '累计应纳税所得额', '本月个税', '累计个税', '实发工资'];
+            const rows = results.monthResults.map(r => {
+                if (!r.enabled) return [r.month + '月(跳过)', '-', '-', '-', '-', '-', '-', '-', '-', '-'];
+                return [
+                    r.month + '月',
+                    r.salary.toFixed(2),
+                    r.subsidy.toFixed(2),
+                    (r.bonus + r.bonusInThisMonth).toFixed(2),
+                    r.totalSI.toFixed(2),
+                    r.housingFund.toFixed(2),
+                    r.cumulativeTaxableIncome.toFixed(2),
+                    r.monthTax.toFixed(2),
+                    r.cumulativeTax.toFixed(2),
+                    r.netSalary.toFixed(2),
+                ];
+            });
+
+            if (bonusTaxMethod === 'separate' && annualBonus > 0) {
+                rows.push(['年终奖(单独计税)', annualBonus.toFixed(2), '-', '-', '-', '-', '-', bonusTax.toFixed(2), '-', (annualBonus - bonusTax).toFixed(2)]);
+            }
+
+            const csvContent = '\uFEFF' + [headers, ...rows].map(row => row.join(',')).join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = '薪资明细.csv';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // ===== localStorage 持久化 =====
+        const STORAGE_KEY = 'salary_calculator_data';
+        const AI_STORAGE_KEY = 'salary_ai_api_key';
+
+        function loadFromStorage() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (raw) return JSON.parse(raw);
+            } catch (e) {}
+            return null;
+        }
+
+        function saveToStorage(data) {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+            } catch (e) {}
+        }
+
+        function clearStorage() {
+            try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+        }
+
+        function loadApiKey() {
+            try { return localStorage.getItem(AI_STORAGE_KEY) || ''; } catch (e) { return ''; }
+        }
+
+        function saveApiKey(key) {
+            try { localStorage.setItem(AI_STORAGE_KEY, key); } catch (e) {}
+        }
+
+        // ===== AI 工具函数 =====
+        const DASHSCOPE_API_URL = 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions';
+        const AI_MODEL = 'qwen-plus';
+
+        async function callDashScope(apiKey, systemPrompt, userPrompt) {
+            const response = await fetch(DASHSCOPE_API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + apiKey,
+                },
+                body: JSON.stringify({
+                    model: AI_MODEL,
+                    messages: [
+                        { role: 'system', content: systemPrompt },
+                        { role: 'user', content: userPrompt },
+                    ],
+                    temperature: 0.7,
+                    max_tokens: 2000,
+                }),
+            });
+            if (!response.ok) {
+                const errText = await response.text().catch(() => '');
+                throw new Error('API request failed: ' + response.status + ' ' + errText);
+            }
+            const data = await response.json();
+            return data.choices[0].message.content;
+        }
+
+        function parseAIJson(rawResponse) {
+            try { return JSON.parse(rawResponse); } catch (e) {}
+            const match = rawResponse.match(/```(?:json)?\s*([\s\S]*?)```/);
+            if (match) {
+                try { return JSON.parse(match[1].trim()); } catch (e) {}
+            }
+            const braceMatch = rawResponse.match(/\{[\s\S]*\}/);
+            if (braceMatch) {
+                try { return JSON.parse(braceMatch[0]); } catch (e) {}
+            }
+            return null;
+        }
+
+        function simpleMarkdown(text) {
+            if (!text) return '';
+            let html = text
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+            html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+            html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+            html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+            html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+            html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+            html = html.replace(/`(.+?)`/g, '<code>$1</code>');
+            html = html.replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>');
+            html = html.replace(/^\- (.+)$/gm, '<li>$1</li>');
+            html = html.replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>');
+            html = html.replace(/^\d+\. (.+)$/gm, '<li>$1</li>');
+            html = html.replace(/\n{2,}/g, '</p><p>');
+            html = html.replace(/\n/g, '<br/>');
+            html = '<p>' + html + '</p>';
+            html = html.replace(/<p><(h[123]|ul|ol|blockquote)/g, '<$1');
+            html = html.replace(/<\/(h[123]|ul|ol|blockquote)><\/p>/g, '</$1>');
+            html = html.replace(/<p><\/p>/g, '');
+            return html;
+        }
+
+        // ===== AI Mock 数据 =====
+        function getMockSmartInput(inputText) {
+            const data = {
+                city: 'shanghai',
+                salary: 30000,
+                housingFundRate: 12,
+                annualBonus: 60000,
+                specialDeduction: 1000,
+            };
+            if (inputText.includes('北京') || inputText.includes('BJ')) data.city = 'beijing';
+            else if (inputText.includes('广州')) data.city = 'guangzhou';
+            else if (inputText.includes('深圳')) data.city = 'shenzhen';
+            else if (inputText.includes('杭州')) data.city = 'hangzhou';
+            else if (inputText.includes('成都')) data.city = 'chengdu';
+
+            const salaryMatch = inputText.match(/月薪\s*(\d+\.?\d*)\s*[千万]/);
+            if (salaryMatch) {
+                const val = parseFloat(salaryMatch[1]);
+                data.salary = inputText.includes('万') ? val * 10000 : val * 1000;
+            }
+            const salaryMatch2 = inputText.match(/月薪\s*(\d+)/);
+            if (salaryMatch2 && !salaryMatch) data.salary = parseInt(salaryMatch2[1]);
+
+            const hfMatch = inputText.match(/公积金\s*(\d+)%?/);
+            if (hfMatch) data.housingFundRate = parseInt(hfMatch[1]);
+
+            const bonusMatch = inputText.match(/年终奖\s*(\d+\.?\d*)\s*万?/);
+            if (bonusMatch) {
+                data.annualBonus = bonusMatch[1].includes('.') || inputText.match(/年终奖\s*\d+\.?\d*\s*万/)
+                    ? parseFloat(bonusMatch[1]) * 10000
+                    : parseInt(bonusMatch[1]);
+            }
+
+            const deductionMatch = inputText.match(/扣除\s*(\d+)/);
+            if (deductionMatch) data.specialDeduction = parseInt(deductionMatch[1]);
+
+            const loanMatch = inputText.match(/房贷.*?(\d+)/);
+            if (loanMatch) data.specialDeduction = parseInt(loanMatch[1]);
+
+            return data;
+        }
+
+        function getMockAnalysis(city, salary, totalGross, totalNet, totalTax, enabledCount) {
+            const cityName = CITY_PRESETS[city]?.name || '当前城市';
+            const avgSalaries = { beijing: 13438, shanghai: 12183, guangzhou: 10588, shenzhen: 12078, hangzhou: 11254, chengdu: 9185, custom: 10000 };
+            const cityAvg = avgSalaries[city] || 10000;
+            const ratio = salary / cityAvg;
+            let score = Math.min(98, Math.max(15, Math.round(ratio * 45 + 10)));
+            let percentile = Math.min(99, Math.max(5, Math.round(ratio * 40 + 15)));
+            const effectiveRate = totalGross > 0 ? ((totalTax / totalGross) * 100).toFixed(1) : '0.0';
+
+            return {
+                competitiveness_score: score,
+                city_average_salary: cityAvg,
+                percentile: percentile,
+                effective_tax_rate: parseFloat(effectiveRate),
+                comparison: ratio >= 1.5 ? '远超城市平均水平' : ratio >= 1.2 ? '高于城市平均水平' : ratio >= 0.9 ? '接近城市平均水平' : '低于城市平均水平',
+                analysis_summary: '您在' + cityName + '的月薪为¥' + salary.toLocaleString() + '，' + (ratio >= 1.2 ? '处于较高水平。' : ratio >= 0.9 ? '处于中等偏上水平。' : '仍有较大提升空间。') + '年税前总收入¥' + totalGross.toLocaleString() + '，实际到手¥' + totalNet.toLocaleString() + '，综合税负率' + effectiveRate + '%。',
+                suggestions: [
+                    '关注个人养老金账户政策，每年最高可存入12000元享受税前扣除，有效降低税负',
+                    '建议合理配置专项附加扣除，如子女教育(每个子女2000元/月)、继续教育(400元/月)、住房贷款利息(1000元/月)等',
+                    '考虑将部分收入转化为股权激励或期权，可能享受更优惠的税率',
+                    '持续学习新技能，提升职场竞争力，争取更快的薪资增长',
+                ],
+            };
+        }
+
+        function getMockCareerPlan(city, salary) {
+            const cityName = CITY_PRESETS[city]?.name || '当前城市';
+            return '## 职业发展建议\n\n### 当前薪资定位\n\n您在' + cityName + '的月薪为¥' + salary.toLocaleString() + '。根据市场数据，这一薪资水平在同城市中处于' + (salary >= 25000 ? '中高级' : salary >= 15000 ? '中级' : '初级至中级') + '阶段。\n\n### 薪资增长路径\n\n- **短期目标(1-2年)**：通过项目经验积累和专业技能提升，目标薪资增长15%-25%\n- **中期目标(3-5年)**：向管理岗位或资深专家方向发展，目标月薪提升50%-80%\n- **长期目标(5-10年)**：进入高级管理层或成为行业专家，实现收入质的飞跃\n\n### 技能提升建议\n\n1. **专业技能深化**：在当前领域持续深耕，获取高级认证或专业资格\n2. **管理能力培养**：学习团队管理、项目管理、战略规划等软技能\n3. **跨领域拓展**：了解AI、数据分析等前沿技术，增加复合竞争力\n4. **行业人脉积累**：参加行业会议、加入专业社群，扩大职业网络\n\n### 财务规划建议\n\n- 建立3-6个月的应急储备金\n- 合理配置保险（重疾、医疗、意外），建议保费不超过年收入的5%-10%\n- 开始长期投资规划，建议每月定投收入的20%-30%\n- 关注个人养老金账户等税收优惠政策，最大化利用税优工具\n\n> 以上建议基于当前薪资水平和城市生活成本，具体规划建议咨询专业理财顾问。';
+        }
+
+        // ===== 子组件 (原始) =====
+
+        function Sidebar({ open, onClose }) {
+            const handleNavClick = (e) => {
+                onClose();
+            };
+            return (
+                <React.Fragment>
+                    <div className={`sidebar-overlay ${open ? 'open' : ''}`} onClick={onClose} />
+                    <nav className={`sidebar ${open ? 'open' : ''}`}>
+                        <div className="sidebar-header">
+                            <h2>导航</h2>
+                            <button className="sidebar-close" onClick={onClose}>{'\u2715'}</button>
+                        </div>
+                        <div className="sidebar-nav">
+                            <a href="#city-settings" onClick={handleNavClick}><span className="nav-icon">{'\uD83C\uDFD9'}</span>城市设置</a>
+                            <a href="#global-params" onClick={handleNavClick}><span className="nav-icon">{'\u2699\uFE0F'}</span>全局参数</a>
+                            <a href="#monthly-settings" onClick={handleNavClick}><span className="nav-icon">{'\uD83D\uDCB0'}</span>月度设置</a>
+                            <a href="#bonus-settings" onClick={handleNavClick}><span className="nav-icon">{'\uD83C\uDF81'}</span>年终奖</a>
+                            <a href="#ai-assistant" onClick={handleNavClick} className="ai-nav-link"><span className="nav-icon">{'\uD83E\uDD16'}</span>AI助手 <span className="ai-badge">AI</span></a>
+                            <a href="#results" onClick={handleNavClick}><span className="nav-icon">{'\uD83D\uDCCA'}</span>计算结果</a>
+                            <a href="#tax-table" onClick={handleNavClick}><span className="nav-icon">{'\uD83D\uDCCB'}</span>税率表</a>
+                        </div>
+                    </nav>
+                </React.Fragment>
+            );
+        }
+
+        function CitySettings({ city, setCity, specialDeduction, setSpecialDeduction, applyCityPreset }) {
+            const cityPreset = CITY_PRESETS[city];
+            return (
+                <div className="card" id="city-settings">
+                    <div className="card-title"><span className="icon">{'\uD83C\uDFD9'}</span>城市与基础设置</div>
+                    <div className="form-grid-wide">
+                        <div className="form-group">
+                            <label>选择城市</label>
+                            <select value={city} onChange={e => applyCityPreset(e.target.value)}>
+                                {Object.entries(CITY_PRESETS).map(([key, val]) => (
+                                    <option key={key} value={key}>
+                                        {val.name}{val.year ? ` (${val.year}年度)` : ''}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="form-group">
+                            <label>个税起征点（元/月）</label>
+                            <input type="number" value={cityPreset.taxThreshold} disabled />
+                        </div>
+                        <div className="form-group">
+                            <label>专项附加扣除（元/月）</label>
+                            <input type="number" value={specialDeduction || ''}
+                                onChange={e => setSpecialDeduction(Number(e.target.value) || 0)}
+                                placeholder="0" />
+                        </div>
+                    </div>
+                    {cityPreset.year && (
+                        <p className="info-text">当前使用 {cityPreset.year} 年度社保公积金基数，各地每年7月左右调整，请确认是否为最新数据</p>
+                    )}
+                    <p className="info-text">专项附加扣除包含：子女教育、继续教育、大病医疗、住房贷款利息、住房租金、赡养老人、3岁以下婴幼儿照护等</p>
+                </div>
+            );
+        }
+
+        function GlobalParams({ globalParams, setGlobalParams, applyGlobalToAll }) {
+            return (
+                <div className="card" id="global-params">
+                    <div className="card-title"><span className="icon">{'\u2699\uFE0F'}</span>全局参数设置</div>
+                    <div className="global-settings">
+                        <div className="global-settings-title">
+                            <span>统一设置月薪及社保公积金参数，应用于所有月份</span>
+                            <button className="btn btn-primary btn-sm" onClick={applyGlobalToAll}>
+                                一键应用到全部月份
+                            </button>
+                        </div>
+                        <div className="form-grid">
+                            <div className="form-group">
+                                <label>固定月薪（税前，元）</label>
+                                <input type="number" value={globalParams.salary || ''}
+                                    onChange={e => setGlobalParams(p => ({...p, salary: Number(e.target.value) || 0}))}
+                                    placeholder="0" />
+                            </div>
+                            <div className="form-group">
+                                <label>社保基数（元）</label>
+                                <input type="number" value={globalParams.socialInsuranceBase || ''}
+                                    onChange={e => setGlobalParams(p => ({...p, socialInsuranceBase: Number(e.target.value) || 0}))}
+                                    placeholder="默认等于月薪" />
+                            </div>
+                            <div className="form-group">
+                                <label>养老保险比例（%）</label>
+                                <input type="number" step="0.1" value={globalParams.pensionRate || ''}
+                                    onChange={e => setGlobalParams(p => ({...p, pensionRate: Number(e.target.value) || 0}))}
+                                    placeholder="8" />
+                            </div>
+                            <div className="form-group">
+                                <label>医疗保险比例（%）</label>
+                                <input type="number" step="0.1" value={globalParams.medicalRate || ''}
+                                    onChange={e => setGlobalParams(p => ({...p, medicalRate: Number(e.target.value) || 0}))}
+                                    placeholder="2" />
+                            </div>
+                            <div className="form-group">
+                                <label>失业保险比例（%）</label>
+                                <input type="number" step="0.1" value={globalParams.unemploymentRate || ''}
+                                    onChange={e => setGlobalParams(p => ({...p, unemploymentRate: Number(e.target.value) || 0}))}
+                                    placeholder="0.5" />
+                            </div>
+                            <div className="form-group">
+                                <label>公积金基数（元）</label>
+                                <input type="number" value={globalParams.housingFundBase || ''}
+                                    onChange={e => setGlobalParams(p => ({...p, housingFundBase: Number(e.target.value) || 0}))}
+                                    placeholder="默认等于月薪" />
+                            </div>
+                            <div className="form-group">
+                                <label>公积金比例（%）</label>
+                                <input type="number" step="1" value={globalParams.housingFundRate || ''}
+                                    onChange={e => setGlobalParams(p => ({...p, housingFundRate: Number(e.target.value) || 0}))}
+                                    placeholder="12" />
+                            </div>
+                        </div>
+                    </div>
+                    <p className="info-text">比例请填写百分比数值（如养老 8 表示 8%）。每个月份可单独覆盖（在下方月份卡片中填写即可），留空则使用全局值。</p>
+                </div>
+            );
+        }
+
+        function MonthSelector({ enabledMonths, toggleMonth, selectAllMonths, selectNoneMonths, monthlyData, enabledCount }) {
+            return (
+                <div>
+                    <div className="month-selector">
+                        <span style={{ fontSize: 13, color: '#666', marginRight: 4 }}>参与计算：</span>
+                        {[1,2,3,4,5,6,7,8,9,10,11,12].map(m => (
+                            <div key={m}
+                                className={`month-chip ${enabledMonths[m] ? 'selected' : ''} ${(monthlyData[m].salary !== null && monthlyData[m].salary > 0) || monthlyData[m].subsidy > 0 || monthlyData[m].bonus > 0 ? 'has-data' : ''}`}
+                                onClick={() => toggleMonth(m)}>
+                                {m}月
+                            </div>
+                        ))}
+                        <button className="btn btn-outline btn-sm" onClick={selectAllMonths} style={{ marginLeft: 8 }}>全选</button>
+                        <button className="btn btn-outline btn-sm" onClick={selectNoneMonths}>全不选</button>
+                    </div>
+                    <p className="info-text" style={{ marginBottom: 16 }}>
+                        已选 {enabledCount} 个月参与累计计税。点击月份标签可启用/禁用该月。
+                    </p>
+                </div>
+            );
+        }
+
+        function MonthCard({ month, enabled, data, globalParams, toggleMonth, updateMonthField, collapsed, onToggleCollapse }) {
+            return (
+                <div className={`month-card ${!enabled ? 'disabled' : ''}`}>
+                    <div className="month-card-header" onClick={onToggleCollapse}>
+                        <input type="checkbox" checked={enabled}
+                            onChange={(e) => { e.stopPropagation(); toggleMonth(month); }}
+                            style={{ pointerEvents: 'all' }} />
+                        <span className="month-label">{month}月</span>
+                        <span className={`toggle-icon ${collapsed ? 'collapsed' : ''}>{'\u25BC'}</span>
+                    </div>
+                    <div className={`month-card-body ${collapsed ? 'collapsed' : ''}`}>
+                        <div className="form-group">
+                            <label>月薪(税前)</label>
+                            <input type="number"
+                                value={data.salary === null ? '' : (data.salary || '')}
+                                onChange={e => updateMonthField(month, 'salary', e.target.value === '' ? null : (Number(e.target.value) || 0))}
+                                placeholder={globalParams.salary ? String(globalParams.salary) : '同全局'} />
+                        </div>
+                        <div className="form-group">
+                            <label>补贴(计税)</label>
+                            <input type="number"
+                                value={data.subsidy || ''}
+                                onChange={e => updateMonthField(month, 'subsidy', Number(e.target.value) || 0)}
+                                placeholder="0" />
+                        </div>
+                        <div className="form-group">
+                            <label>奖金(免税)</label>
+                            <input type="number"
+                                value={data.bonus || ''}
+                                onChange={e => updateMonthField(month, 'bonus', Number(e.target.value) || 0)}
+                                placeholder="0" />
+                        </div>
+                        <div className="form-group">
+                            <label>社保基数</label>
+                            <input type="number"
+                                value={data.socialInsuranceBase === null ? '' : (data.socialInsuranceBase || '')}
+                                onChange={e => updateMonthField(month, 'socialInsuranceBase', e.target.value === '' ? null : (Number(e.target.value) || 0))}
+                                placeholder={globalParams.socialInsuranceBase || '同全局'} />
+                        </div>
+                        <div className="form-group">
+                            <label>公积金基数</label>
+                            <input type="number"
+                                value={data.housingFundBase === null ? '' : (data.housingFundBase || '')}
+                                onChange={e => updateMonthField(month, 'housingFundBase', e.target.value === '' ? null : (Number(e.target.value) || 0))}
+                                placeholder={globalParams.housingFundBase || '同全局'} />
+                        </div>
+                        <div className="form-group">
+                            <label>公积金比例(%)</label>
+                            <input type="number" step="1"
+                                value={data.housingFundRate === null ? '' : (data.housingFundRate || '')}
+                                onChange={e => updateMonthField(month, 'housingFundRate', e.target.value === '' ? null : (Number(e.target.value) || 0))}
+                                placeholder={globalParams.housingFundRate || '同全局'} />
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        function BonusSettings({ annualBonus, setAnnualBonus, bonusMonth, setBonusMonth, bonusTaxMethod, setBonusTaxMethod, enabledMonths }) {
+            const bonusMonthDisabled = annualBonus > 0 && bonusTaxMethod === 'combined' && !enabledMonths[bonusMonth];
+            return (
+                <div className="card" id="bonus-settings">
+                    <div className="card-title"><span className="icon">{'\uD83C\uDF81'}</span>年终奖设置</div>
+                    <div className="form-grid-wide">
+                        <div className="form-group">
+                            <label>年终奖金额（元）</label>
+                            <input type="number" value={annualBonus || ''}
+                                onChange={e => setAnnualBonus(Number(e.target.value) || 0)}
+                                placeholder="0" />
+                        </div>
+                        <div className="form-group">
+                            <label>发放月份</label>
+                            <select value={bonusMonth} onChange={e => setBonusMonth(Number(e.target.value))}>
+                                {[1,2,3,4,5,6,7,8,9,10,11,12].map(m => (
+                                    <option key={m} value={m}>{m}月</option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+                    <div style={{ marginTop: 12 }}>
+                        <label style={{ fontSize: 13, color: '#666', fontWeight: 500, marginBottom: 8, display: 'block' }}>计税方式</label>
+                        <div className="radio-group">
+                            <label>
+                                <input type="radio" name="bonusTax" value="separate"
+                                    checked={bonusTaxMethod === 'separate'}
+                                    onChange={() => setBonusTaxMethod('separate')} />
+                                单独计税
+                            </label>
+                            <label>
+                                <input type="radio" name="bonusTax" value="combined"
+                                    checked={bonusTaxMethod === 'combined'}
+                                    onChange={() => setBonusTaxMethod('combined')} />
+                                合并计税
+                            </label>
+                        </div>
+                        <p className="info-text">
+                            {bonusTaxMethod === 'separate'
+                                ? '单独计税：年终奖除以12个月，按月度税率表单独计算税额'
+                                : '合并计税：年终奖并入发放月份的工资薪金，累计预扣预缴'}
+                        </p>
+                    </div>
+                    {bonusMonthDisabled && (
+                        <p className="warning-text">
+                            {'\u26A0'} 年终奖发放月份（{bonusMonth}月）当前未启用，合并计税将不会生效。请启用该月或更换发放月份。
+                        </p>
+                    )}
+                </div>
+            );
+        }
+
+        function ResultSummary({ results, enabledCount, bonusTaxMethod, annualBonus, bonusTax }) {
+            const monthlyAvgNet = enabledCount > 0 ? results.totalNet / enabledCount : 0;
+            return (
+                <div>
+                    <div className="summary-cards">
+                        <div className="summary-card">
+                            <div className="label">税前总收入</div>
+                            <div className="value">{'\uFFE5'}{formatCurrency(results.totalGross)}</div>
+                        </div>
+                        <div className="summary-card green">
+                            <div className="label">到手总额</div>
+                            <div className="value">{'\uFFE5'}{formatCurrency(results.totalNet)}</div>
+                            <div className="sub">月均 {'\uFFE5'}{formatCurrency(monthlyAvgNet)}</div>
+                        </div>
+                        <div className="summary-card blue">
+                            <div className="label">个税合计</div>
+                            <div className="value">{'\uFFE5'}{formatCurrency(results.totalTax)}</div>
+                        </div>
+                        <div className="summary-card orange">
+                            <div className="label">社保+公积金</div>
+                            <div className="value">{'\uFFE5'}{formatCurrency(results.totalSI + results.totalHF)}</div>
+                        </div>
+                        <div className="summary-card teal">
+                            <div className="label">月均到手</div>
+                            <div className="value">{'\uFFE5'}{formatCurrency(monthlyAvgNet)}</div>
+                            <div className="sub">含年终奖分摊</div>
+                        </div>
+                    </div>
+
+                    {bonusTaxMethod === 'separate' && annualBonus > 0 && (
+                        <p style={{ fontSize: 13, color: '#666', marginBottom: 12 }}>
+                            年终奖 {'\uFFE5'}{formatCurrency(annualBonus)} 单独计税，应缴税额：{'\uFFE5'}{formatCurrency(bonusTax)}，
+                            到手：{'\uFFE5'}{formatCurrency(annualBonus - bonusTax)}
+                        </p>
+                    )}
+                </div>
+            );
+        }
+
+        function ResultTable({ results, bonusTaxMethod, annualBonus, bonusTax, onExport }) {
+            return (
+                <div>
+                    <div className="table-scroll">
+                        <table className="result-table">
+                            <thead>
+                                <tr>
+                                    <th className="sticky-col">月份</th>
+                                    <th>税前工资</th>
+                                    <th>补贴(计税)</th>
+                                    <th>奖金(免税)</th>
+                                    <th>社保扣除</th>
+                                    <th>公积金扣除</th>
+                                    <th>累计应纳税所得额</th>
+                                    <th>本月个税</th>
+                                    <th>累计个税</th>
+                                    <th>实发工资</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {results.monthResults.map(r => (
+                                    <tr key={r.month} className={`${!r.enabled ? 'disabled-row' : ''} ${r.bracketChanged ? 'bracket-change' : ''}`}>
+                                        <td className="sticky-col">
+                                            {r.month}月{!r.enabled && ' (跳过)'}
+                                            {r.bracketChanged && <span className="badge">跳档</span>}
+                                        </td>
+                                        <td>{r.enabled ? formatCurrency(r.salary) : '-'}</td>
+                                        <td>{r.enabled ? formatCurrency(r.subsidy) : '-'}</td>
+                                        <td>{r.enabled ? formatCurrency(r.bonus + r.bonusInThisMonth) : '-'}</td>
+                                        <td>{r.enabled ? formatCurrency(r.totalSI) : '-'}</td>
+                                        <td>{r.enabled ? formatCurrency(r.housingFund) : '-'}</td>
+                                        <td>{r.enabled ? formatCurrency(r.cumulativeTaxableIncome) : '-'}</td>
+                                        <td>{r.enabled ? formatCurrency(r.monthTax) : '-'}</td>
+                                        <td>{r.enabled ? formatCurrency(r.cumulativeTax) : '-'}</td>
+                                        <td className="sticky-col" style={{ fontWeight: r.enabled ? 600 : 400, color: !r.enabled ? '#ccc' : (r.netSalary < 0 ? '#ff4d4f' : '#52c41a'), left: 'auto', right: 0 }}>
+                                            {r.enabled ? (r.netSalary < 0 ? '\u26A0 ' : '') + formatCurrency(r.netSalary) : '-'}
+                                        </td>
+                                    </tr>
+                                ))}
+                                {(() => {
+                                    const enabled = results.monthResults.filter(r => r.enabled);
+                                    const totalNetInTable = enabled.reduce((s, r) => s + r.netSalary, 0);
+                                    return (
+                                        <tr className="total-row">
+                                            <td className="sticky-col">合计</td>
+                                            <td>{formatCurrency(enabled.reduce((s, r) => s + r.salary, 0))}</td>
+                                            <td>{formatCurrency(enabled.reduce((s, r) => s + r.subsidy, 0))}</td>
+                                            <td>{formatCurrency(enabled.reduce((s, r) => s + r.bonus + r.bonusInThisMonth, 0))}</td>
+                                            <td>{formatCurrency(results.totalSI)}</td>
+                                            <td>{formatCurrency(results.totalHF)}</td>
+                                            <td>-</td>
+                                            <td>{formatCurrency(enabled.reduce((s, r) => s + r.monthTax, 0))}</td>
+                                            <td>-</td>
+                                            <td style={{ color: totalNetInTable >= 0 ? '#52c41a' : '#ff4d4f' }}>{formatCurrency(totalNetInTable)}</td>
+                                        </tr>
+                                    );
+                                })()}
+                            </tbody>
+                        </table>
+                    </div>
+                    {bonusTaxMethod === 'separate' && annualBonus > 0 && (
+                        <p style={{ fontSize: 13, color: '#666', marginTop: 12 }}>
+                            * 上表实发工资不含年终奖到手部分（{'\uFFE5'}{formatCurrency(annualBonus - bonusTax)}），到手总额已包含。
+                        </p>
+                    )}
+                    {results.monthResults.some(r => r.enabled && r.netSalary < 0) && (
+                        <p className="warning-text">
+                            {'\u26A0'} 部分月份实发工资为负数，通常是因为社保/公积金基数高于当月工资。请检查该月的基数设置是否合理，或将该月取消勾选不参与计算。
+                        </p>
+                    )}
+                </div>
+            );
+        }
+
+        function TaxRateTable() {
+            return (
+                <div className="card" id="tax-table">
+                    <div className="card-title"><span className="icon">{'\uD83D\uDCCB'}</span>个人所得税税率表（综合所得适用）</div>
+                    <div className="table-scroll">
+                        <table className="result-table">
+                            <thead>
+                                <tr>
+                                    <th>级数</th>
+                                    <th>累计应纳税所得额</th>
+                                    <th>税率</th>
+                                    <th>速算扣除数</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {TAX_BRACKETS.map((b, i) => (
+                                    <tr key={i}>
+                                        <td>{i + 1}</td>
+                                        <td>{b.max === Infinity ? `超过 ${formatCurrency(b.min)}` : `${formatCurrency(b.min)} - ${formatCurrency(b.max)}`}</td>
+                                        <td>{(b.rate * 100).toFixed(0)}%</td>
+                                        <td>{formatCurrency(b.deduction)}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            );
+        }
+
+        // ===== AI 组件 =====
+
+        function AISettings({ apiKey, setApiKey }) {
+            const [inputValue, setInputValue] = useState(apiKey);
+            const [saved, setSaved] = useState(false);
+
+            const handleSave = () => {
+                const trimmed = inputValue.trim();
+                setApiKey(trimmed);
+                saveApiKey(trimmed);
+                setSaved(true);
+                setTimeout(() => setSaved(false), 2000);
+            };
+
+            const handleKeyDown = (e) => {
+                if (e.key === 'Enter') handleSave();
+            };
+
+            return (
+                <div className="ai-settings-bar">
+                    <label>
+                        <span className="ai-badge">AI</span>
+                        DashScope API Key:
+                    </label>
+                    <input
+                        type="password"
+                        value={inputValue}
+                        onChange={e => setInputValue(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        placeholder="输入通义千问 DashScope API Key（不填则使用演示模式）"
+                    />
+                    <button className="ai-btn" onClick={handleSave} style={{ padding: '7px 16px' }}>保存</button>
+                    <span className={`ai-settings-status ${apiKey ? 'connected' : 'demo'}`}>
+                        {saved ? '\u2705 已保存' : apiKey ? '\u2705 已连接' : '\uD83D\uDCA1 演示模式'}
+                    </span>
+                </div>
+            );
+        }
+
+        function AILoading({ text }) {
+            return (
+                <div className="ai-loading">
+                    <div className="ai-loading-dots">
+                        <span /><span /><span />
+                    </div>
+                    <span>{text || 'AI正在分析中...'}</span>
+                </div>
+            );
+        }
+
+        function AISkeleton() {
+            return (
+                <div style={{ padding: 16 }}>
+                    <div className="ai-skeleton title" />
+                    <div className="ai-skeleton long" />
+                    <div className="ai-skeleton medium" />
+                    <div className="ai-skeleton long" />
+                    <div className="ai-skeleton short" />
+                    <div className="ai-skeleton medium" />
+                </div>
+            );
+        }
+
+        function AISmartInput({ apiKey, city, globalParams, annualBonus, specialDeduction, onApply }) {
+            const [inputText, setInputText] = useState('');
+            const [loading, setLoading] = useState(false);
+            const [extractedData, setExtractedData] = useState(null);
+            const [error, setError] = useState('');
+
+            const handleParse = async () => {
+                if (!inputText.trim()) return;
+                setLoading(true);
+                setError('');
+                setExtractedData(null);
+
+                try {
+                    let data;
+                    if (apiKey) {
+                        const systemPrompt = `你是一个薪资信息提取助手。用户会用自然语言描述自己的薪资情况，你需要从中提取以下信息并以JSON格式返回：
+{
+  "city": "城市代码(beijing/shanghai/guangzhou/shenzhen/hangzhou/chengdu)",
+  "salary": 月薪金额(数字，单位元),
+  "housingFundRate": 公积金比例(数字，百分比),
+  "annualBonus": 年终奖金额(数字，单位元),
+  "specialDeduction": 专项附加扣除金额(数字，单位元/月),
+  "socialInsuranceBase": 社保基数(数字，可选),
+  "housingFundBase": 公积金基数(数字，可选)
+}
+只返回JSON，不要其他内容。如果某项信息未提及，设为null。住房贷款利息扣除标准为1000元/月，住房租金根据城市不同(直辖市/省会/计划单列市1500，其他800-1100)。赡养老人2000元/月，子女教育每个子女2000元/月。`;
+
+                        const userPrompt = inputText;
+                        const rawResponse = await callDashScope(apiKey, systemPrompt, userPrompt);
+                        data = parseAIJson(rawResponse);
+                        if (!data) {
+                            data = getMockSmartInput(inputText);
+                        }
+                    } else {
+                        await new Promise(r => setTimeout(r, 1200));
+                        data = getMockSmartInput(inputText);
+                    }
+                    setExtractedData(data);
+                } catch (err) {
+                    setError('解析失败: ' + err.message);
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            const handleApply = () => {
+                if (extractedData) {
+                    onApply(extractedData);
+                    setExtractedData(null);
+                }
+            };
+
+            const handleDismiss = () => {
+                setExtractedData(null);
+            };
+
+            const cityLabel = (code) => CITY_PRESETS[code]?.name || code;
+
+            return (
+                <div className="ai-feature-card">
+                    <div className="ai-section-title">
+                        <span className="ai-badge">AI</span>
+                        智能输入 - 用自然语言填写薪资信息
+                    </div>
+                    <textarea
+                        className="ai-input-area"
+                        value={inputText}
+                        onChange={e => setInputText(e.target.value)}
+                        placeholder="例如：我在上海工作，月薪3万，公积金12%，年终奖6万，有房贷利息扣除1000/月&#10;例如：北京工作，月薪25000，社保基数30000，年终奖3个月工资，赡养老人扣除2000"
+                        rows={3}
+                    />
+                    <div style={{ marginTop: 12, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                        <button className="ai-btn" onClick={handleParse} disabled={loading || !inputText.trim()}>
+                            {loading ? '解析中...' : '\uD83E\uDD16 AI解析'}
+                        </button>
+                        <span style={{ fontSize: 12, color: '#999' }}>支持识别城市、月薪、社保公积金比例、年终奖、专项扣除等</span>
+                    </div>
+
+                    {loading && <AILoading text="AI正在解析您的薪资信息..." />}
+                    {error && <div className="warning-text" style={{ marginTop: 12 }}>{error}</div>}
+
+                    {extractedData && (
+                        <div className="ai-extracted-data">
+                            <h4>{'\u2705'} 已识别的信息</h4>
+                            <div className="ai-extracted-items">
+                                {extractedData.city && (
+                                    <div className="ai-extracted-item">
+                                        <span className="item-label">城市</span>
+                                        <span className="item-value">{cityLabel(extractedData.city)}</span>
+                                    </div>
+                                )}
+                                {extractedData.salary != null && (
+                                    <div className="ai-extracted-item">
+                                        <span className="item-label">月薪</span>
+                                        <span className="item-value">{'\uFFE5'}{Number(extractedData.salary).toLocaleString()}</span>
+                                    </div>
+                                )}
+                                {extractedData.housingFundRate != null && (
+                                    <div className="ai-extracted-item">
+                                        <span className="item-label">公积金比例</span>
+                                        <span className="item-value">{extractedData.housingFundRate}%</span>
+                                    </div>
+                                )}
+                                {extractedData.annualBonus != null && (
+                                    <div className="ai-extracted-item">
+                                        <span className="item-label">年终奖</span>
+                                        <span className="item-value">{'\uFFE5'}{Number(extractedData.annualBonus).toLocaleString()}</span>
+                                    </div>
+                                )}
+                                {extractedData.specialDeduction != null && (
+                                    <div className="ai-extracted-item">
+                                        <span className="item-label">专项扣除</span>
+                                        <span className="item-value">{'\uFFE5'}{Number(extractedData.specialDeduction).toLocaleString()}/月</span>
+                                    </div>
+                                )}
+                                {extractedData.socialInsuranceBase != null && (
+                                    <div className="ai-extracted-item">
+                                        <span className="item-label">社保基数</span>
+                                        <span className="item-value">{'\uFFE5'}{Number(extractedData.socialInsuranceBase).toLocaleString()}</span>
+                                    </div>
+                                )}
+                                {extractedData.housingFundBase != null && (
+                                    <div className="ai-extracted-item">
+                                        <span className="item-label">公积金基数</span>
+                                        <span className="item-value">{'\uFFE5'}{Number(extractedData.housingFundBase).toLocaleString()}</span>
+                                    </div>
+                                )}
+                            </div>
+                            <div style={{ marginTop: 14, display: 'flex', gap: 8 }}>
+                                <button className="ai-btn" onClick={handleApply}>{'\u2705'} 确认应用</button>
+                                <button className="btn btn-outline btn-sm" onClick={handleDismiss}>取消</button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        function AIAnalysisPanel({ apiKey, city, globalParams, results, enabledCount }) {
+            const [loading, setLoading] = useState(false);
+            const [analysisData, setAnalysisData] = useState(null);
+            const [error, setError] = useState('');
+
+            const salary = globalParams.salary || 0;
+
+            const handleAnalyze = async () => {
+                if (salary <= 0) return;
+                setLoading(true);
+                setError('');
+                setAnalysisData(null);
+
+                try {
+                    let data;
+                    if (apiKey) {
+                        const cityName = CITY_PRESETS[city]?.name || city;
+                        const systemPrompt = `你是一个专业的薪资分析师。根据用户提供的薪资信息，进行全面的薪资竞争力分析。请以JSON格式返回分析结果：
+{
+  "competitiveness_score": 竞争力评分(1-100的整数),
+  "city_average_salary": 该城市平均工资(数字),
+  "percentile": 所处百分位(1-99的整数),
+  "effective_tax_rate": 实际有效税率(百分比数字),
+  "comparison": "与城市平均水平的比较描述",
+  "analysis_summary": "总体分析摘要(2-3句话)",
+  "suggestions": ["建议1", "建议2", "建议3", "建议4"]
+}
+只返回JSON，不要其他内容。分析要专业、客观、有建设性。所有文本使用中文。`;
+
+                        const userPrompt = `城市: ${cityName}
+月薪: ${salary}元
+年终奖: ${results.annualBonus}元
+年税前总收入: ${results.totalGross}元
+年到手总额: ${results.totalNet}元
+个税合计: ${results.totalTax}元
+社保公积金合计: ${results.totalSI + results.totalHF}元
+参与计算月数: ${enabledCount}个月
+专项附加扣除: ${0}元/月`;
+
+                        const rawResponse = await callDashScope(apiKey, systemPrompt, userPrompt);
+                        data = parseAIJson(rawResponse);
+                        if (!data) {
+                            data = getMockAnalysis(city, salary, results.totalGross, results.totalNet, results.totalTax, enabledCount);
+                        }
+                    } else {
+                        await new Promise(r => setTimeout(r, 1500));
+                        data = getMockAnalysis(city, salary, results.totalGross, results.totalNet, results.totalTax, enabledCount);
+                    }
+                    setAnalysisData(data);
+                } catch (err) {
+                    setError('分析失败: ' + err.message);
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            const scoreClass = (score) => score >= 70 ? 'high' : score >= 40 ? 'medium' : 'low';
+
+            return (
+                <div className="ai-feature-card">
+                    <div className="ai-section-title">
+                        <span className="ai-badge">AI</span>
+                        薪资竞争力分析
+                    </div>
+                    {!apiKey && (
+                        <div className="ai-demo-notice">
+                            {'\uD83D\uDCA1'} 当前为演示模式，显示基于算法估算的参考数据。设置API Key可获得AI实时分析。
+                        </div>
+                    )}
+                    <button className="ai-btn" onClick={handleAnalyze} disabled={loading || salary <= 0}>
+                        {loading ? '分析中...' : '\uD83D\uDCCA AI分析薪资'}
+                    </button>
+
+                    {loading && <AISkeleton />}
+                    {error && <div className="warning-text" style={{ marginTop: 12 }}>{error}</div>}
+
+                    {analysisData && !loading && (
+                        <div className="ai-result" style={{ marginTop: 16 }}>
+                            <div className="ai-score-display">
+                                <div className={`ai-score-circle ${scoreClass(analysisData.competitiveness_score)}`}>
+                                    {analysisData.competitiveness_score}
+                                </div>
+                                <div className="ai-score-info">
+                                    <div className="title">薪资竞争力评分</div>
+                                    <div className="desc">{analysisData.comparison}</div>
+                                </div>
+                            </div>
+
+                            <div style={{ margin: '16px 0' }}>
+                                <div className="ai-metric-row">
+                                    <span className="ai-metric-label">城市平均月薪</span>
+                                    <span className="ai-metric-value">{'\uFFE5'}{(analysisData.city_average_salary || 0).toLocaleString()}</span>
+                                </div>
+                                <div className="ai-metric-row">
+                                    <span className="ai-metric-label">您的月薪水平</span>
+                                    <span className="ai-metric-value">{'\uFFE5'}{salary.toLocaleString()}</span>
+                                </div>
+                                <div className="ai-metric-row">
+                                    <span className="ai-metric-label">所处百分位</span>
+                                    <span className="ai-metric-value positive">前 {100 - (analysisData.percentile || 50)}%</span>
+                                </div>
+                                <div className="ai-metric-row">
+                                    <span className="ai-metric-label">综合有效税率</span>
+                                    <span className="ai-metric-value">{(analysisData.effective_tax_rate || 0).toFixed(1)}%</span>
+                                </div>
+                            </div>
+
+                            {analysisData.analysis_summary && (
+                                <div style={{ padding: '12px 16px', background: '#f6f8ff', borderRadius: 8, margin: '12px 0', fontSize: 13, lineHeight: 1.8, color: '#444' }}>
+                                    {analysisData.analysis_summary}
+                                </div>
+                            )}
+
+                            {analysisData.suggestions && analysisData.suggestions.length > 0 && (
+                                <div>
+                                    <div className="ai-section-title" style={{ marginTop: 16 }}>{'\uD83D\uDCA1'} 优化建议</div>
+                                    <ul className="ai-suggestion-list">
+                                        {analysisData.suggestions.map((s, i) => (
+                                            <li key={i}>
+                                                <span className="num">{i + 1}</span>
+                                                <span>{s}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        function AITaxOptimizer({ apiKey, city, globalParams, results, annualBonus, bonusTaxMethod, bonusMonth, specialDeduction, enabledMonths, monthlyData, onBonusTaxMethodChange }) {
+            const [loading, setLoading] = useState(false);
+            const [aiSuggestion, setAiSuggestion] = useState('');
+            const [error, setError] = useState('');
+
+            const salary = globalParams.salary || 0;
+
+            // Local computation: compare separate vs combined bonus taxation
+            const separateResult = useMemo(() => {
+                if (annualBonus <= 0) return null;
+                return calculateMonthlyResults({
+                    monthlyData, city, annualBonus, bonusTaxMethod: 'separate',
+                    bonusMonth, specialDeduction, enabledMonths, globalParams
+                });
+            }, [monthlyData, city, annualBonus, bonusMonth, specialDeduction, enabledMonths, globalParams]);
+
+            const combinedResult = useMemo(() => {
+                if (annualBonus <= 0) return null;
+                return calculateMonthlyResults({
+                    monthlyData, city, annualBonus, bonusTaxMethod: 'combined',
+                    bonusMonth, specialDeduction, enabledMonths, globalParams
+                });
+            }, [monthlyData, city, annualBonus, bonusMonth, specialDeduction, enabledMonths, globalParams]);
+
+            const separateTax = separateResult ? separateResult.totalTax : 0;
+            const combinedTax = combinedResult ? combinedResult.totalTax : 0;
+            const savings = Math.abs(separateTax - combinedTax);
+            const betterMethod = separateTax <= combinedTax ? 'separate' : 'combined';
+            const hasComparison = annualBonus > 0 && separateResult && combinedResult;
+
+            const handleAISuggest = async () => {
+                if (salary <= 0) return;
+                setLoading(true);
+                setError('');
+                setAiSuggestion('');
+
+                try {
+                    let text;
+                    if (apiKey) {
+                        const cityName = CITY_PRESETS[city]?.name || city;
+                        const systemPrompt = `你是一个专业的税务优化顾问。根据用户的薪资和年终奖信息，提供税务优化建议。重点关注：
+1. 年终奖单独计税vs合并计税的选择建议
+2. 专项附加扣除的优化建议（列出可能适用的扣除项目）
+3. 其他合法的节税策略
+请用中文回答，简洁专业，给出具体可操作的建议。`;
+
+                        const userPrompt = `城市: ${cityName}
+月薪: ${salary}元
+年终奖: ${annualBonus}元
+当前计税方式: ${bonusTaxMethod === 'separate' ? '单独计税' : '合并计税'}
+单独计税总税额: ${separateTax}元
+合并计税总税额: ${combinedTax}元
+当前专项附加扣除: ${specialDeduction}元/月
+社保公积金年合计: ${(results.totalSI + results.totalHF).toFixed(0)}元
+
+请分析哪种计税方式更优，并给出专项附加扣除的优化建议。`;
+
+                        text = await callDashScope(apiKey, systemPrompt, userPrompt);
+                    } else {
+                        await new Promise(r => setTimeout(r, 1200));
+                        const cityName = CITY_PRESETS[city]?.name || city;
+                        const suggestions = [];
+                        suggestions.push(`### 年终奖计税方式分析`);
+                        suggestions.push('');
+                        if (hasComparison) {
+                            if (betterMethod === 'separate') {
+                                suggestions.push(`根据您的薪资结构，**单独计税**更优，可节省税款 **${savings.toFixed(2)}** 元。`);
+                            } else {
+                                suggestions.push(`根据您的薪资结构，**合并计税**更优，可节省税款 **${savings.toFixed(2)}** 元。`);
+                            }
+                        }
+                        suggestions.push('');
+                        suggestions.push(`### 专项附加扣除建议`);
+                        suggestions.push('');
+                        if (specialDeduction === 0) {
+                            suggestions.push(`您当前未设置专项附加扣除，以下项目可能适用：`);
+                            suggestions.push(`- **住房贷款利息**：1000元/月（首套住房贷款）`);
+                            suggestions.push(`- **住房租金**：${city === 'beijing' || city === 'shanghai' || city === 'guangzhou' || city === 'shenzhen' ? '1500' : '800-1100'}元/月（无自有住房）`);
+                            suggestions.push(`- **赡养老人**：最高3000元/月（独生子女）`);
+                            suggestions.push(`- **子女教育**：每个子女2000元/月`);
+                            suggestions.push(`- **继续教育**：学历教育400元/月，职业资格取证当年3600元`);
+                            suggestions.push(`- **3岁以下婴幼儿照护**：每个婴幼儿2000元/月`);
+                        } else {
+                            suggestions.push(`您当前设置了${specialDeduction}元/月的专项附加扣除，请确认已充分利用所有可扣除项目。`);
+                        }
+                        suggestions.push('');
+                        suggestions.push(`### 其他节税建议`);
+                        suggestions.push(`- 考虑开设**个人养老金账户**，每年最高缴存12000元可税前扣除`);
+                        suggestions.push(`- 如有商业健康保险，每年最高可税前扣除2400元`);
+                        suggestions.push(`- 合理规划年终奖发放时间，避免跨年导致的税务问题`);
+                        text = suggestions.join('\n');
+                    }
+                    setAiSuggestion(text);
+                } catch (err) {
+                    setError('获取建议失败: ' + err.message);
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            return (
+                <div className="ai-feature-card">
+                    <div className="ai-section-title">
+                        <span className="ai-badge">AI</span>
+                        税务优化分析
+                    </div>
+                    {!apiKey && (
+                        <div className="ai-demo-notice">
+                            {'\uD83D\uDCA1'} 演示模式：计税方式对比为本地精确计算，AI建议为基于规则的参考建议。
+                        </div>
+                    )}
+
+                    {hasComparison && (
+                        <div>
+                            <div style={{ fontSize: 14, fontWeight: 600, color: '#333', marginBottom: 12 }}>年终奖计税方式对比（本地精确计算）</div>
+                            <div className="ai-compare">
+                                <div className={`ai-compare-col ${betterMethod === 'separate' ? 'winner' : ''}`}>
+                                    <h4>单独计税</h4>
+                                    <div className="amount" style={{ color: betterMethod === 'separate' ? '#52c41a' : '#333' }}>
+                                        {'\uFFE5'}{formatCurrency(separateTax)}
+                                    </div>
+                                    <div className="detail">年终奖税额</div>
+                                    <div className="detail">到手: {'\uFFE5'}{formatCurrency(annualBonus - separateResult.bonusTax)}</div>
+                                    <div className="detail">全年总税: {'\uFFE5'}{formatCurrency(separateTax)}</div>
+                                    {betterMethod === 'separate' && (
+                                        <div className="ai-savings-badge">{'\u2705'} 推荐 - 节省 {'\uFFE5'}{formatCurrency(savings)}</div>
+                                    )}
+                                </div>
+                                <div className="ai-compare-vs">VS</div>
+                                <div className={`ai-compare-col ${betterMethod === 'combined' ? 'winner' : ''}`}>
+                                    <h4>合并计税</h4>
+                                    <div className="amount" style={{ color: betterMethod === 'combined' ? '#52c41a' : '#333' }}>
+                                        {'\uFFE5'}{formatCurrency(combinedTax)}
+                                    </div>
+                                    <div className="detail">全年总税额</div>
+                                    <div className="detail">到手: {'\uFFE5'}{formatCurrency(combinedResult.totalNet)}</div>
+                                    <div className="detail">年终奖并入{bonusMonth}月工资</div>
+                                    {betterMethod === 'combined' && (
+                                        <div className="ai-savings-badge">{'\u2705'} 推荐 - 节省 {'\uFFE5'}{formatCurrency(savings)}</div>
+                                    )}
+                                </div>
+                            </div>
+                            {bonusTaxMethod !== betterMethod && (
+                                <div style={{ marginTop: 12 }}>
+                                    <button
+                                        className="btn btn-success btn-sm"
+                                        onClick={() => onBonusTaxMethodChange(betterMethod)}
+                                    >
+                                        {'\u26A1'} 切换为{betterMethod === 'separate' ? '单独计税' : '合并计税'}（更优）
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {!hasComparison && annualBonus <= 0 && (
+                        <div style={{ padding: 16, textAlign: 'center', color: '#999', fontSize: 13 }}>
+                            请设置年终奖金额以启用计税方式对比分析
+                        </div>
+                    )}
+
+                    <hr className="section-divider" />
+
+                    <button className="ai-btn" onClick={handleAISuggest} disabled={loading || salary <= 0} style={{ marginTop: 8 }}>
+                        {loading ? '分析中...' : '\uD83D\uDCA1 AI税务优化建议'}
+                    </button>
+
+                    {loading && <AILoading text="AI正在分析税务优化方案..." />}
+                    {error && <div className="warning-text" style={{ marginTop: 12 }}>{error}</div>}
+
+                    {aiSuggestion && !loading && (
+                        <div className="ai-result ai-markdown-content" style={{ marginTop: 16 }}
+                            dangerouslySetInnerHTML={{ __html: simpleMarkdown(aiSuggestion) }} />
+                    )}
+                </div>
+            );
+        }
+
+        function AICareerPlanner({ apiKey, city, globalParams, results }) {
+            const [loading, setLoading] = useState(false);
+            const [planText, setPlanText] = useState('');
+            const [error, setError] = useState('');
+
+            const salary = globalParams.salary || 0;
+
+            const handlePlan = async () => {
+                if (salary <= 0) return;
+                setLoading(true);
+                setError('');
+                setPlanText('');
+
+                try {
+                    let text;
+                    if (apiKey) {
+                        const cityName = CITY_PRESETS[city]?.name || city;
+                        const systemPrompt = `你是一个专业的职业规划顾问。根据用户的薪资和城市信息，提供详细的职业发展建议和财务规划建议。请包含以下内容：
+1. 当前薪资定位分析
+2. 薪资增长路径和benchmarks
+3. 技能提升建议
+4. 财务规划建议
+请用中文回答，专业、实用、有条理。使用Markdown格式。`;
+
+                        const userPrompt = `城市: ${cityName}
+月薪: ${salary}元
+年税前总收入: ${results.totalGross}元
+年到手总额: ${results.totalNet}元
+个税合计: ${results.totalTax}元
+社保公积金合计: ${(results.totalSI + results.totalHF).toFixed(0)}元
+当前边际税率档位: ${(TAX_BRACKETS[getTaxBracketIndex(results.totalGross > 0 ? results.totalGross - results.totalSI - results.totalHF - 60000 : 0)]?.rate * 100 || 3)}%`;
+
+                        text = await callDashScope(apiKey, systemPrompt, userPrompt);
+                    } else {
+                        await new Promise(r => setTimeout(r, 1500));
+                        text = getMockCareerPlan(city, salary);
+                    }
+                    setPlanText(text);
+                } catch (err) {
+                    setError('获取建议失败: ' + err.message);
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            return (
+                <div className="ai-feature-card">
+                    <div className="ai-section-title">
+                        <span className="ai-badge">AI</span>
+                        职业规划建议
+                    </div>
+                    {!apiKey && (
+                        <div className="ai-demo-notice">
+                            {'\uD83D\uDCA1'} 当前为演示模式，显示通用参考建议。设置API Key可获得AI个性化分析。
+                        </div>
+                    )}
+                    <button className="ai-btn" onClick={handlePlan} disabled={loading || salary <= 0}>
+                        {loading ? '生成中...' : '\uD83D\uDE80 AI职业规划'}
+                    </button>
+
+                    {loading && <AISkeleton />}
+                    {error && <div className="warning-text" style={{ marginTop: 12 }}>{error}</div>}
+
+                    {planText && !loading && (
+                        <div className="ai-result ai-markdown-content" style={{ marginTop: 16 }}
+                            dangerouslySetInnerHTML={{ __html: simpleMarkdown(planText) }} />
+                    )}
+                </div>
+            );
+        }
+
+        function AIAssistant({ apiKey, city, globalParams, results, enabledCount, annualBonus, bonusTaxMethod, bonusMonth, specialDeduction, enabledMonths, monthlyData, onApplySmartInput, onBonusTaxMethodChange }) {
+            const [expanded, setExpanded] = useState(false);
+            const [activeTab, setActiveTab] = useState('input');
+
+            const tabs = [
+                { key: 'input', label: '\u270F\uFE0F 智能输入' },
+                { key: 'analysis', label: '\uD83D\uDCCA 薪资分析' },
+                { key: 'tax', label: '\uD83D\uDCB0 税务优化' },
+                { key: 'career', label: '\uD83D\uDE80 职业规划' },
+            ];
+
+            return (
+                <div className="ai-panel" id="ai-assistant">
+                    <div className="ai-panel-header" onClick={() => setExpanded(!expanded)}>
+                        <h3>
+                            <span className="ai-badge">AI</span>
+                            AI智能助手
+                        </h3>
+                        <span className={`toggle-arrow ${!expanded ? 'collapsed' : ''}`}>{'\u25BC'}</span>
+                    </div>
+                    <div className={`ai-panel-body ${expanded ? 'expanded' : 'collapsed'}`}>
+                        <div className="ai-tabs">
+                            {tabs.map(tab => (
+                                <button
+                                    key={tab.key}
+                                    className={`ai-tab ${activeTab === tab.key ? 'active' : ''}`}
+                                    onClick={() => setActiveTab(tab.key)}
+                                >
+                                    {tab.label}
+                                </button>
+                            ))}
+                        </div>
+
+                        {activeTab === 'input' && (
+                            <AISmartInput
+                                apiKey={apiKey}
+                                city={city}
+                                globalParams={globalParams}
+                                annualBonus={annualBonus}
+                                specialDeduction={specialDeduction}
+                                onApply={onApplySmartInput}
+                            />
+                        )}
+                        {activeTab === 'analysis' && (
+                            <AIAnalysisPanel
+                                apiKey={apiKey}
+                                city={city}
+                                globalParams={globalParams}
+                                results={results}
+                                enabledCount={enabledCount}
+                            />
+                        )}
+                        {activeTab === 'tax' && (
+                            <AITaxOptimizer
+                                apiKey={apiKey}
+                                city={city}
+                                globalParams={globalParams}
+                                results={results}
+                                annualBonus={annualBonus}
+                                bonusTaxMethod={bonusTaxMethod}
+                                bonusMonth={bonusMonth}
+                                specialDeduction={specialDeduction}
+                                enabledMonths={enabledMonths}
+                                monthlyData={monthlyData}
+                                onBonusTaxMethodChange={onBonusTaxMethodChange}
+                            />
+                        )}
+                        {activeTab === 'career' && (
+                            <AICareerPlanner
+                                apiKey={apiKey}
+                                city={city}
+                                globalParams={globalParams}
+                                results={results}
+                            />
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        // ===== 主组件 =====
+        function App() {
+            const saved = useRef(loadFromStorage());
+
+            const [city, setCity] = useState(saved.current?.city ?? 'shanghai');
+            const [bonusTaxMethod, setBonusTaxMethod] = useState(saved.current?.bonusTaxMethod ?? 'separate');
+            const [annualBonus, setAnnualBonus] = useState(saved.current?.annualBonus ?? 0);
+            const [bonusMonth, setBonusMonth] = useState(saved.current?.bonusMonth ?? 1);
+            const [specialDeduction, setSpecialDeduction] = useState(saved.current?.specialDeduction ?? 0);
+
+            const [enabledMonths, setEnabledMonths] = useState(() => {
+                if (saved.current?.enabledMonths) return saved.current.enabledMonths;
+                const s = {};
+                for (let i = 1; i <= 12; i++) s[i] = true;
+                return s;
+            });
+
+            const [globalParams, setGlobalParams] = useState(saved.current?.globalParams ?? {
+                salary: 0,
+                socialInsuranceBase: 0,
+                pensionRate: 8,
+                medicalRate: 2,
+                unemploymentRate: 0.5,
+                housingFundBase: 0,
+                housingFundRate: 12,
+            });
+
+            const defaultMonthData = () => ({
+                salary: null,
+                bonus: 0,
+                subsidy: 0,
+                socialInsuranceBase: null,
+                pensionRate: null,
+                medicalRate: null,
+                unemploymentRate: null,
+                housingFundBase: null,
+                housingFundRate: null,
+            });
+
+            const [monthlyData, setMonthlyData] = useState(() => {
+                if (saved.current?.monthlyData) return saved.current.monthlyData;
+                const data = {};
+                for (let i = 1; i <= 12; i++) data[i] = defaultMonthData();
+                return data;
+            });
+
+            const [collapsedMonths, setCollapsedMonths] = useState(() => {
+                const c = {};
+                for (let i = 1; i <= 12; i++) c[i] = false;
+                return c;
+            });
+
+            const [sidebarOpen, setSidebarOpen] = useState(false);
+
+            // AI API Key
+            const [apiKey, setApiKey] = useState(() => loadApiKey());
+
+            // 自动保存（防抖 500ms）
+            const saveTimerRef = useRef(null);
+            useEffect(() => {
+                if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+                saveTimerRef.current = setTimeout(() => {
+                    saveToStorage({ city, bonusTaxMethod, annualBonus, bonusMonth, specialDeduction, enabledMonths, globalParams, monthlyData });
+                }, 500);
+                return () => { if (saveTimerRef.current) clearTimeout(saveTimerRef.current); };
+            }, [city, bonusTaxMethod, annualBonus, bonusMonth, specialDeduction, enabledMonths, globalParams, monthlyData]);
+
+            const updateMonthField = (month, field, value) => {
+                setMonthlyData(prev => ({
+                    ...prev,
+                    [month]: { ...prev[month], [field]: value }
+                }));
+            };
+
+            const toggleMonth = (month) => {
+                setEnabledMonths(prev => ({ ...prev, [month]: !prev[month] }));
+            };
+
+            const selectAllMonths = () => {
+                const s = {};
+                for (let i = 1; i <= 12; i++) s[i] = true;
+                setEnabledMonths(s);
+            };
+
+            const selectNoneMonths = () => {
+                const s = {};
+                for (let i = 1; i <= 12; i++) s[i] = false;
+                setEnabledMonths(s);
+            };
+
+            const applyCityPreset = (cityKey) => {
+                setCity(cityKey);
+                const preset = CITY_PRESETS[cityKey];
+                if (cityKey === 'custom') return;
+                setGlobalParams(prev => ({
+                    ...prev,
+                    pensionRate: preset.socialInsurance.pension.rate,
+                    medicalRate: preset.socialInsurance.medical.rate,
+                    unemploymentRate: preset.socialInsurance.unemployment.rate,
+                    housingFundRate: preset.housingFund.rateMax,
+                }));
+            };
+
+            const applyGlobalToAll = () => {
+                setMonthlyData(prev => {
+                    const newData = {};
+                    for (let i = 1; i <= 12; i++) {
+                        newData[i] = {
+                            ...prev[i],
+                            salary: null,
+                            socialInsuranceBase: null,
+                            pensionRate: null,
+                            medicalRate: null,
+                            unemploymentRate: null,
+                            housingFundBase: null,
+                            housingFundRate: null,
+                        };
+                    }
+                    return newData;
+                });
+            };
+
+            const resetAll = () => {
+                if (!confirm('确定要重置所有数据吗？此操作不可撤销。')) return;
+                clearStorage();
+                setCity('shanghai');
+                setBonusTaxMethod('separate');
+                setAnnualBonus(0);
+                setBonusMonth(1);
+                setSpecialDeduction(0);
+                const s = {};
+                for (let i = 1; i <= 12; i++) s[i] = true;
+                setEnabledMonths(s);
+                setGlobalParams({
+                    salary: 0, socialInsuranceBase: 0, pensionRate: 8, medicalRate: 2,
+                    unemploymentRate: 0.5, housingFundBase: 0, housingFundRate: 12,
+                });
+                const data = {};
+                for (let i = 1; i <= 12; i++) data[i] = defaultMonthData();
+                setMonthlyData(data);
+            };
+
+            const toggleCollapseMonth = (m) => {
+                setCollapsedMonths(prev => ({ ...prev, [m]: !prev[m] }));
+            };
+
+            const results = useMemo(() => {
+                return calculateMonthlyResults({ monthlyData, city, annualBonus, bonusTaxMethod, bonusMonth, specialDeduction, enabledMonths, globalParams });
+            }, [monthlyData, city, annualBonus, bonusTaxMethod, bonusMonth, specialDeduction, enabledMonths, globalParams]);
+
+            const enabledCount = Object.values(enabledMonths).filter(Boolean).length;
+
+            const handleExport = () => {
+                exportCSV(results, bonusTaxMethod, annualBonus, results.bonusTax);
+            };
+
+            // AI Smart Input apply handler
+            const handleApplySmartInput = (data) => {
+                if (data.city && CITY_PRESETS[data.city]) {
+                    applyCityPreset(data.city);
+                }
+                setGlobalParams(prev => ({
+                    ...prev,
+                    salary: data.salary != null ? data.salary : prev.salary,
+                    socialInsuranceBase: data.socialInsuranceBase != null ? data.socialInsuranceBase : prev.socialInsuranceBase,
+                    housingFundBase: data.housingFundBase != null ? data.housingFundBase : prev.housingFundBase,
+                    housingFundRate: data.housingFundRate != null ? data.housingFundRate : prev.housingFundRate,
+                }));
+                if (data.annualBonus != null) setAnnualBonus(data.annualBonus);
+                if (data.specialDeduction != null) setSpecialDeduction(data.specialDeduction);
+            };
+
+            const handleBonusTaxMethodChange = (method) => {
+                setBonusTaxMethod(method);
+            };
+
+            return (
+                <div className="app-container">
+                    <button className={`menu-toggle ${sidebarOpen ? 'open' : ''}`} onClick={() => setSidebarOpen(!sidebarOpen)}>
+                        <span /><span /><span />
+                    </button>
+                    <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+
+                    <div className="app-header">
+                        <h1>AI薪资计算器</h1>
+                        <p>支持累计预扣预缴 · 自选计算月份 · 年终奖单独/合并计税 · 多城市社保公积金预设 · AI智能分析</p>
+                    </div>
+
+                    <AISettings apiKey={apiKey} setApiKey={setApiKey} />
+
+                    <CitySettings
+                        city={city} setCity={setCity}
+                        specialDeduction={specialDeduction} setSpecialDeduction={setSpecialDeduction}
+                        applyCityPreset={applyCityPreset}
+                    />
+
+                    <GlobalParams
+                        globalParams={globalParams} setGlobalParams={setGlobalParams}
+                        applyGlobalToAll={applyGlobalToAll}
+                    />
+
+                    <div className="card" id="monthly-settings">
+                        <div className="card-title"><span className="icon">{'\uD83D\uDCB0'}</span>月度薪资设置</div>
+
+                        <MonthSelector
+                            enabledMonths={enabledMonths} toggleMonth={toggleMonth}
+                            selectAllMonths={selectAllMonths} selectNoneMonths={selectNoneMonths}
+                            monthlyData={monthlyData} enabledCount={enabledCount}
+                        />
+
+                        <div className="months-grid">
+                            {[1,2,3,4,5,6,7,8,9,10,11,12].map(m => (
+                                <MonthCard key={m}
+                                    month={m} enabled={enabledMonths[m]}
+                                    data={monthlyData[m]} globalParams={globalParams}
+                                    toggleMonth={toggleMonth} updateMonthField={updateMonthField}
+                                    collapsed={collapsedMonths[m]}
+                                    onToggleCollapse={() => toggleCollapseMonth(m)}
+                                />
+                            ))}
+                        </div>
+                    </div>
+
+                    <BonusSettings
+                        annualBonus={annualBonus} setAnnualBonus={setAnnualBonus}
+                        bonusMonth={bonusMonth} setBonusMonth={setBonusMonth}
+                        bonusTaxMethod={bonusTaxMethod} setBonusTaxMethod={setBonusTaxMethod}
+                        enabledMonths={enabledMonths}
+                    />
+
+                    <AIAssistant
+                        apiKey={apiKey}
+                        city={city}
+                        globalParams={globalParams}
+                        results={results}
+                        enabledCount={enabledCount}
+                        annualBonus={annualBonus}
+                        bonusTaxMethod={bonusTaxMethod}
+                        bonusMonth={bonusMonth}
+                        specialDeduction={specialDeduction}
+                        enabledMonths={enabledMonths}
+                        monthlyData={monthlyData}
+                        onApplySmartInput={handleApplySmartInput}
+                        onBonusTaxMethodChange={handleBonusTaxMethodChange}
+                    />
+
+                    <div className="card" id="results">
+                        <div className="card-title">
+                            <span className="icon">{'\uD83D\uDCCA'}</span>计算结果（已选 {enabledCount} 个月）
+                            <div className="actions">
+                                <button className="btn btn-success btn-sm" onClick={handleExport}>导出 CSV</button>
+                                <button className="btn btn-danger btn-sm" onClick={resetAll}>重置数据</button>
+                            </div>
+                        </div>
+
+                        <ResultSummary
+                            results={results} enabledCount={enabledCount}
+                            bonusTaxMethod={bonusTaxMethod} annualBonus={annualBonus} bonusTax={results.bonusTax}
+                        />
+
+                        <ResultTable
+                            results={results} bonusTaxMethod={bonusTaxMethod}
+                            annualBonus={annualBonus} bonusTax={results.bonusTax}
+                            onExport={handleExport}
+                        />
+                    </div>
+
+                    <TaxRateTable />
+
+                    <div style={{ textAlign: 'center', padding: '20px 0', color: '#999', fontSize: 12 }}>
+                        <p>本计算器仅供参考，实际薪资以公司HR核算为准</p>
+                        <p>计算方法：累计预扣预缴法（2019年起实施）· 数据自动保存至浏览器本地</p>
+                        <p>AI功能由通义千问提供支持 · API Key仅存储在您的浏览器本地</p>
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+</body>
+</html>
