@@ -22,7 +22,7 @@ export default function BonusSettings({
   const showWarning = bonusTaxMethod === 'combined' && !enabledMonths[bonusMonth];
 
   return (
-    <div className="bg-bg-card rounded-xl p-6 shadow-sm border border-border">
+    <div id="bonus-settings" className="bg-bg-card rounded-xl p-6 shadow-sm border border-border">
       <h3 className="text-base font-semibold text-text mb-4">年终奖设置</h3>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">

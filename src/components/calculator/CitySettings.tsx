@@ -18,7 +18,7 @@ export default function CitySettings({
   const cityPreset = CITY_PRESETS[city];
 
   return (
-    <div className="bg-bg-card rounded-xl p-6 shadow-sm border border-border">
+    <div id="city-settings" className="bg-bg-card rounded-xl p-6 shadow-sm border border-border">
       <h3 className="text-base font-semibold text-text mb-4">城市与扣除设置</h3>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {/* City select */}

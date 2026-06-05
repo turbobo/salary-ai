@@ -5,7 +5,7 @@ import { formatCurrency } from '@/lib/calculation/utils';
 
 export default function TaxRateTable() {
   return (
-    <div className="bg-bg-card rounded-xl p-6 shadow-sm border border-border">
+    <div id="tax-table" className="bg-bg-card rounded-xl p-6 shadow-sm border border-border">
       <h3 className="text-base font-semibold text-text mb-4">个人所得税税率表（综合所得）</h3>
 
       <div className="overflow-x-auto">

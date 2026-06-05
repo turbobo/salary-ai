@@ -29,7 +29,7 @@ export default function GlobalParams({
   };
 
   return (
-    <div className="bg-bg-card rounded-xl p-6 shadow-sm border border-border">
+    <div id="global-params" className="bg-bg-card rounded-xl p-6 shadow-sm border border-border">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-base font-semibold text-text">全局参数</h3>
         <button

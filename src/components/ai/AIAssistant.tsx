@@ -54,7 +54,7 @@ export default function AIAssistant({
   const [activeTab, setActiveTab] = useState<TabKey>('smart-input');
 
   return (
-    <div className="rounded-xl border border-[#667eea]/20 bg-bg-card shadow-sm overflow-hidden">
+    <div id="ai-assistant" className="rounded-xl border border-[#667eea]/20 bg-bg-card shadow-sm overflow-hidden">
       {/* Header */}
       <button
         onClick={() => setCollapsed(!collapsed)}
