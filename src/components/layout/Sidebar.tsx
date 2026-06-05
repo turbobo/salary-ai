@@ -24,13 +24,18 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
     const sectionIds = navLinks.map((link) => link.href);
     const observer = new IntersectionObserver(
       (entries) => {
+        const visible: { id: string; top: number }[] = [];
         for (const entry of entries) {
           if (entry.isIntersecting) {
-            setActiveSection(entry.target.id);
+            visible.push({ id: entry.target.id, top: entry.boundingClientRect.top });
           }
         }
+        if (visible.length > 0) {
+          visible.sort((a, b) => Math.abs(a.top) - Math.abs(b.top));
+          setActiveSection(visible[0].id);
+        }
       },
-      { rootMargin: '-20% 0px -60% 0px', threshold: 0 }
+      { rootMargin: '-10% 0px -50% 0px', threshold: [0, 0.3] }
     );
 
     for (const id of sectionIds) {
@@ -41,9 +46,11 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
     return () => observer.disconnect();
   }, []);
 
-  const handleClick = (href: string) => {
+  const handleClick = (e: React.MouseEvent, href: string) => {
+    e.preventDefault();
     setActiveSection(href);
     onClose();
+    document.getElementById(href)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   return (
@@ -84,7 +91,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
               <a
                 key={link.href}
                 href={`#${link.href}`}
-                onClick={() => handleClick(link.href)}
+                onClick={(e) => handleClick(e, link.href)}
                 className={`flex items-center gap-3 px-4 py-2.5 text-sm transition-colors ${
                   isActive
                     ? 'bg-gradient-to-r from-purple-500 to-indigo-500 text-white mx-2 rounded-lg'
