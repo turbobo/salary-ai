@@ -16,12 +16,7 @@ interface AuthContextType {
   signOut: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType>({
-  user: null,
-  session: null,
-  loading: true,
-  signOut: async () => {},
-});
+const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -29,36 +24,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // If Supabase is not configured, provide a mock context
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
       setLoading(false);
       return;
     }
 
-    // Dynamically import to avoid errors when env vars are not set
+    let subscription: { unsubscribe: () => void } | null = null;
+
     import('@/lib/supabase/client').then(({ createClient }) => {
       const supabase = createClient();
 
-      // Get initial session
       supabase.auth.getSession().then(({ data: { session: s } }) => {
         setSession(s);
         setUser(s?.user ?? null);
         setLoading(false);
       });
 
-      // Listen for auth state changes
-      const {
-        data: { subscription },
-      } = supabase.auth.onAuthStateChange((_event, s) => {
+      const { data } = supabase.auth.onAuthStateChange((_event, s) => {
         setSession(s);
         setUser(s?.user ?? null);
         setLoading(false);
       });
-
-      return () => {
-        subscription.unsubscribe();
-      };
+      subscription = data.subscription;
     });
+
+    return () => {
+      subscription?.unsubscribe();
+    };
   }, []);
 
   const signOut = async () => {
@@ -77,7 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export function useAuth() {
+export function useAuth(): AuthContextType {
   const context = useContext(AuthContext);
   if (!context) {
     throw new Error('useAuth must be used within an AuthProvider');

@@ -75,14 +75,14 @@ export function useCalculator(): CalculatorState {
   useEffect(() => {
     if (!isClient || !saved.current) return;
     const s = saved.current;
-    if (s.city) setCity(s.city as string);
-    if (s.bonusTaxMethod) setBonusTaxMethod(s.bonusTaxMethod as string);
-    if (s.annualBonus) setAnnualBonus(s.annualBonus as number);
-    if (s.bonusMonth) setBonusMonth(s.bonusMonth as number);
-    if (s.specialDeduction) setSpecialDeduction(s.specialDeduction as number);
-    if (s.enabledMonths) setEnabledMonths(s.enabledMonths as Record<number, boolean>);
-    if (s.globalParams) setGlobalParams(s.globalParams as GlobalParams);
-    if (s.monthlyData) setMonthlyData(s.monthlyData as Record<number, MonthData>);
+    if (s.city != null) setCity(s.city as string);
+    if (s.bonusTaxMethod != null) setBonusTaxMethod(s.bonusTaxMethod as string);
+    if (s.annualBonus != null) setAnnualBonus(s.annualBonus as number);
+    if (s.bonusMonth != null) setBonusMonth(s.bonusMonth as number);
+    if (s.specialDeduction != null) setSpecialDeduction(s.specialDeduction as number);
+    if (s.enabledMonths != null) setEnabledMonths(s.enabledMonths as Record<number, boolean>);
+    if (s.globalParams != null) setGlobalParams(s.globalParams as GlobalParams);
+    if (s.monthlyData != null) setMonthlyData(s.monthlyData as Record<number, MonthData>);
   }, [isClient]);
 
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);

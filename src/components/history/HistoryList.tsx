@@ -27,6 +27,7 @@ export default function HistoryList({ onLoad }: HistoryListProps) {
         const { data, error } = await supabase
           .from('calculations')
           .select('*')
+          .eq('user_id', user.id)
           .order('updated_at', { ascending: false });
 
         if (error) {

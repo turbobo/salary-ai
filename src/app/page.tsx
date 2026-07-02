@@ -48,7 +48,7 @@ export default function Home() {
     }));
     if (data.annualBonus != null) calc.setAnnualBonus(data.annualBonus);
     if (data.specialDeduction != null) calc.setSpecialDeduction(data.specialDeduction);
-  }, [calc]);
+  }, [calc.applyCityPreset, calc.setGlobalParams, calc.setAnnualBonus, calc.setSpecialDeduction]);
 
   const handleSaveToCloud = useCallback(async () => {
     if (!user) return;
@@ -79,7 +79,7 @@ export default function Home() {
     } finally {
       setSaving(false);
     }
-  }, [user, calc]);
+  }, [user, calc.city, calc.globalParams, calc.monthlyData, calc.enabledMonths, calc.annualBonus, calc.bonusMonth, calc.bonusTaxMethod, calc.specialDeduction, calc.results]);
 
   return (
     <div className="max-w-[1400px] mx-auto p-6">

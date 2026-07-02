@@ -100,13 +100,13 @@ export function calculateMonthlyResults(input: CalculationInput): CalculationRes
     let pension = 0, medical = 0, unemployment = 0, totalSI = 0, housingFund = 0, totalDeductions = 0;
     if (salary > 0) {
       const siBase = siBaseInput > 0 ? siBaseInput : salary;
-      const clampedSIBase = (city !== 'custom' && preset.socialInsurance.pension.max > 0)
-        ? clamp(siBase, preset.socialInsurance.pension.min, preset.socialInsurance.pension.max)
-        : siBase;
 
-      pension = roundToFen(clampedSIBase * pensionRate);
-      medical = roundToFen(clampedSIBase * medicalRate + (preset.socialInsurance.medical.addition || 0));
-      unemployment = roundToFen(clampedSIBase * unemploymentRate);
+      const clampSI = (item: { min: number; max: number }) =>
+        (city !== 'custom' && item.max > 0) ? clamp(siBase, item.min, item.max) : siBase;
+
+      pension = roundToFen(clampSI(preset.socialInsurance.pension) * pensionRate);
+      medical = roundToFen(clampSI(preset.socialInsurance.medical) * medicalRate + (preset.socialInsurance.medical.addition || 0));
+      unemployment = roundToFen(clampSI(preset.socialInsurance.unemployment) * unemploymentRate);
       totalSI = roundToFen(pension + medical + unemployment);
 
       const hfBase = hfBaseInput > 0 ? hfBaseInput : salary;
@@ -140,7 +140,7 @@ export function calculateMonthlyResults(input: CalculationInput): CalculationRes
     const netSalary = roundToFen(salary + subsidy + monthBonus + bonusInThisMonth - totalDeductions - monthTax);
 
     const currentBracketIndex = getTaxBracketIndex(effectiveCumTaxable);
-    const bracketChanged = month > 1 && currentBracketIndex > prevBracketIndex && effectiveCumTaxable > 0;
+    const bracketChanged = month > 1 && currentBracketIndex !== prevBracketIndex && effectiveCumTaxable > 0;
     prevBracketIndex = effectiveCumTaxable > 0 ? currentBracketIndex : prevBracketIndex;
 
     monthResults.push({
@@ -159,7 +159,10 @@ export function calculateMonthlyResults(input: CalculationInput): CalculationRes
   }
 
   const enabledResults = monthResults.filter(r => r.enabled);
-  const totalGross = roundToFen(enabledResults.reduce((s, r) => s + r.salary + r.subsidy + r.bonus + r.bonusInThisMonth, 0));
+  const totalGross = roundToFen(
+    enabledResults.reduce((s, r) => s + r.salary + r.subsidy + r.bonus + r.bonusInThisMonth, 0)
+    + (bonusTaxMethod === 'separate' ? annualBonus : 0)
+  );
   const totalSI = roundToFen(enabledResults.reduce((s, r) => s + r.totalSI, 0));
   const totalHF = roundToFen(enabledResults.reduce((s, r) => s + r.housingFund, 0));
   const totalTax = roundToFen(cumulativeTaxPaid + bonusTax);
@@ -172,13 +175,14 @@ export function calculateMonthlyResults(input: CalculationInput): CalculationRes
 }
 
 export function exportCSV(results: CalculationResults, bonusTaxMethod: string, annualBonus: number, bonusTax: number): void {
-  const headers = ['月份', '税前工资', '补贴(计税)', '奖金(免税)', '社保扣除', '公积金扣除', '累计应纳税所得额', '本月个税', '累计个税', '实发工资'];
+  const headers = ['月份', '税前工资', '补贴(计税)', '奖金(免税)', '年终奖(计税)', '社保扣除', '公积金扣除', '累计应纳税所得额', '本月个税', '累计个税', '实发工资'];
   const rows = results.monthResults.map(r => {
-    if (!r.enabled) return [r.month + '月(跳过)', '-', '-', '-', '-', '-', '-', '-', '-', '-'];
+    if (!r.enabled) return [r.month + '月(跳过)', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'];
     return [
       r.month + '月',
       r.salary.toFixed(2), r.subsidy.toFixed(2),
-      (r.bonus + r.bonusInThisMonth).toFixed(2),
+      r.bonus.toFixed(2),
+      r.bonusInThisMonth.toFixed(2),
       r.totalSI.toFixed(2), r.housingFund.toFixed(2),
       r.cumulativeTaxableIncome.toFixed(2),
       r.monthTax.toFixed(2), r.cumulativeTax.toFixed(2),

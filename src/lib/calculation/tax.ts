@@ -7,7 +7,8 @@ export function calcTax(taxableIncome: number): number {
       return roundToFen(taxableIncome * bracket.rate - bracket.deduction);
     }
   }
-  return 0;
+  const last = TAX_BRACKETS[TAX_BRACKETS.length - 1];
+  return roundToFen(taxableIncome * last.rate - last.deduction);
 }
 
 export function getTaxBracketIndex(taxableIncome: number): number {
@@ -25,5 +26,6 @@ export function calcBonusTaxSeparate(bonus: number): number {
       return roundToFen(bonus * bracket.rate - bracket.deduction);
     }
   }
-  return 0;
+  const last = BONUS_TAX_BRACKETS[BONUS_TAX_BRACKETS.length - 1];
+  return roundToFen(bonus * last.rate - last.deduction);
 }
