@@ -29,12 +29,12 @@ export default function GlobalParams({
   };
 
   return (
-    <div id="global-params" className="bg-bg-card rounded-xl p-6 shadow-sm border border-border">
-      <div className="flex items-center justify-between mb-4">
+    <div id="global-params" className="bg-bg-card rounded-xl p-3 sm:p-6 shadow-sm border border-border">
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
         <h3 className="text-base font-semibold text-text">全局参数</h3>
         <button
           onClick={applyGlobalToAll}
-          className="px-4 py-1.5 text-sm rounded-lg bg-primary text-white
+          className="px-4 py-2 text-sm rounded-lg bg-primary text-white
                      hover:bg-primary-hover transition-colors cursor-pointer"
         >
           一键应用到全部月份
@@ -50,7 +50,7 @@ export default function GlobalParams({
               value={globalParams[key] || ''}
               onChange={(e) => updateField(key, e.target.value)}
               placeholder={placeholder}
-              className="h-9 px-3 rounded-lg border border-border bg-bg-card text-sm text-text
+              className="h-10 px-3 rounded-lg border border-border bg-bg-card text-sm text-text
                          focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary
                          transition-colors"
             />

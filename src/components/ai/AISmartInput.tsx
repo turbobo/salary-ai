@@ -115,13 +115,13 @@ export default function AISmartInput({ apiKey, onApply, callAI }: AISmartInputPr
           <div className="flex gap-3 pt-2">
             <button
               onClick={handleApply}
-              className="flex-1 rounded-lg bg-gradient-to-br from-[#667eea] to-[#764ba2] px-4 py-2 text-sm font-medium text-white hover:opacity-90 transition-opacity"
+              className="flex-1 rounded-lg bg-gradient-to-br from-[#667eea] to-[#764ba2] px-4 py-2.5 text-sm font-medium text-white hover:opacity-90 transition-opacity"
             >
               确认应用
             </button>
             <button
               onClick={handleCancel}
-              className="flex-1 rounded-lg border border-border bg-white px-4 py-2 text-sm font-medium text-text-secondary hover:bg-bg-hover transition-colors"
+              className="flex-1 rounded-lg border border-border bg-white px-4 py-2.5 text-sm font-medium text-text-secondary hover:bg-bg-hover transition-colors"
             >
               取消
             </button>

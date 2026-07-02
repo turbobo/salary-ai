@@ -75,7 +75,7 @@ export default function MonthCard({
           )}
         </div>
         <button
-          className="text-text-tertiary hover:text-text transition-colors p-1 cursor-pointer"
+          className="text-text-tertiary hover:text-text transition-colors p-2 cursor-pointer"
           aria-label={collapsed ? '展开' : '收起'}
         >
           <svg
@@ -109,7 +109,7 @@ export default function MonthCard({
                   }}
                   placeholder={getPlaceholder(field)}
                   disabled={!enabled}
-                  className="h-8 px-2.5 rounded-lg border border-border bg-bg-card text-sm text-text
+                  className="h-10 px-3 rounded-lg border border-border bg-bg-card text-sm text-text
                              placeholder:text-text-tertiary
                              focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary
                              disabled:bg-bg disabled:cursor-not-allowed

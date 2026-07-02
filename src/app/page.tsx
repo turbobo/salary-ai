@@ -82,7 +82,7 @@ export default function Home() {
   }, [user, calc.city, calc.globalParams, calc.monthlyData, calc.enabledMonths, calc.annualBonus, calc.bonusMonth, calc.bonusTaxMethod, calc.specialDeduction, calc.results]);
 
   return (
-    <div className="max-w-[1400px] mx-auto p-6">
+    <div className="max-w-[1400px] mx-auto p-3 sm:p-6">
       <button
         className="fixed top-4 left-4 z-[998] w-10 h-10 rounded-xl border-none bg-white shadow-md cursor-pointer flex flex-col items-center justify-center gap-1 transition-all hover:bg-blue-50 hover:shadow-lg"
         onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -97,7 +97,7 @@ export default function Home() {
         <div className="flex justify-end mb-2">
           <AuthButton />
         </div>
-        <h1 className="text-[28px] font-bold text-[#1a1a1a] mb-2">AI薪资计算器</h1>
+        <h1 className="text-2xl sm:text-[28px] font-bold text-[#1a1a1a] mb-2">AI薪资计算器</h1>
         <p className="text-[#666] text-sm">
           支持累计预扣预缴 · 自选计算月份 · 年终奖单独/合并计税 · 多城市社保公积金预设 · AI智能分析
         </p>
@@ -118,7 +118,7 @@ export default function Home() {
         applyGlobalToAll={calc.applyGlobalToAll}
       />
 
-      <div className="bg-white rounded-xl p-6 mb-5 shadow-sm" id="monthly-settings">
+      <div className="bg-white rounded-xl p-3 sm:p-6 mb-5 shadow-sm" id="monthly-settings">
         <div className="text-lg font-semibold mb-4 text-[#1a1a1a] flex items-center gap-2">
           <span className="w-6 h-6 bg-blue-50 rounded-md flex items-center justify-center text-sm">💰</span>
           月度薪资设置
@@ -131,7 +131,7 @@ export default function Home() {
           monthlyData={calc.monthlyData}
           enabledCount={calc.enabledCount}
         />
-        <div className="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {[1,2,3,4,5,6,7,8,9,10,11,12].map(m => (
             <MonthCard
               key={m}
@@ -175,7 +175,7 @@ export default function Home() {
         callAI={callAI}
       />
 
-      <div className="bg-white rounded-xl p-6 mb-5 shadow-sm" id="results">
+      <div className="bg-white rounded-xl p-3 sm:p-6 mb-5 shadow-sm" id="results">
         <div className="text-lg font-semibold mb-4 text-[#1a1a1a] flex items-center justify-between flex-wrap gap-2">
           <div className="flex items-center gap-2">
             <span className="w-6 h-6 bg-blue-50 rounded-md flex items-center justify-center text-sm">📊</span>
@@ -184,7 +184,7 @@ export default function Home() {
           <div className="flex gap-2 items-center flex-wrap">
             {user && (
               <button
-                className="px-3 py-1.5 rounded-md border-none bg-gradient-to-r from-[#667eea] to-[#764ba2] text-white text-xs font-medium cursor-pointer hover:opacity-90 disabled:opacity-50"
+                className="px-3 py-2 rounded-md border-none bg-gradient-to-r from-[#667eea] to-[#764ba2] text-white text-xs font-medium cursor-pointer hover:opacity-90 disabled:opacity-50"
                 onClick={handleSaveToCloud}
                 disabled={saving}
               >
@@ -192,10 +192,10 @@ export default function Home() {
               </button>
             )}
             {saveMsg && <span className="text-xs text-[#52c41a]">{saveMsg}</span>}
-            <button className="px-3 py-1.5 rounded-md border-none bg-[#52c41a] text-white text-xs font-medium cursor-pointer hover:bg-[#43a814]" onClick={handleExport}>
+            <button className="px-3 py-2 rounded-md border-none bg-[#52c41a] text-white text-xs font-medium cursor-pointer hover:bg-[#43a814]" onClick={handleExport}>
               导出 CSV
             </button>
-            <button className="px-3 py-1.5 rounded-md border-none bg-[#ff4d4f] text-white text-xs font-medium cursor-pointer hover:bg-[#d9363e]" onClick={calc.resetAll}>
+            <button className="px-3 py-2 rounded-md border-none bg-[#ff4d4f] text-white text-xs font-medium cursor-pointer hover:bg-[#d9363e]" onClick={calc.resetAll}>
               重置数据
             </button>
           </div>

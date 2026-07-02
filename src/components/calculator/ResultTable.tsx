@@ -30,24 +30,24 @@ export default function ResultTable({
   };
 
   return (
-    <div className="bg-bg-card rounded-xl p-6 shadow-sm border border-border">
+    <div className="bg-bg-card rounded-xl p-3 sm:p-6 shadow-sm border border-border">
       <h3 className="text-base font-semibold text-text mb-4">月度明细</h3>
 
-      <div className="overflow-x-auto -mx-6 px-6">
-        <table className="w-full text-sm border-collapse min-w-[900px]">
+      <div className="overflow-x-auto -mx-3 px-3 sm:-mx-6 sm:px-6">
+        <table className="w-full text-sm border-collapse min-w-[500px] sm:min-w-[900px]">
           <thead>
             <tr className="border-b-2 border-border">
               <th className="text-left py-3 px-2 text-text-secondary font-medium sticky left-0 bg-bg-card z-10 min-w-[60px]">
                 月份
               </th>
               <th className="text-right py-3 px-2 text-text-secondary font-medium">税前工资</th>
-              <th className="text-right py-3 px-2 text-text-secondary font-medium">补贴</th>
-              <th className="text-right py-3 px-2 text-text-secondary font-medium">奖金</th>
+              <th className="text-right py-3 px-2 text-text-secondary font-medium hidden sm:table-cell">补贴</th>
+              <th className="text-right py-3 px-2 text-text-secondary font-medium hidden sm:table-cell">奖金</th>
               <th className="text-right py-3 px-2 text-text-secondary font-medium">社保扣除</th>
               <th className="text-right py-3 px-2 text-text-secondary font-medium">公积金扣除</th>
-              <th className="text-right py-3 px-2 text-text-secondary font-medium">累计应纳税所得额</th>
+              <th className="text-right py-3 px-2 text-text-secondary font-medium hidden sm:table-cell">累计应纳税所得额</th>
               <th className="text-right py-3 px-2 text-text-secondary font-medium">本月个税</th>
-              <th className="text-right py-3 px-2 text-text-secondary font-medium">累计个税</th>
+              <th className="text-right py-3 px-2 text-text-secondary font-medium hidden sm:table-cell">累计个税</th>
               <th className="text-right py-3 px-2 text-text-secondary font-medium">实发工资</th>
             </tr>
           </thead>
@@ -57,9 +57,15 @@ export default function ResultTable({
                 return (
                   <tr key={r.month} className="border-b border-border/50 text-text-tertiary">
                     <td className="py-2.5 px-2 sticky left-0 bg-bg-card z-10">{r.month}月</td>
-                    <td colSpan={9} className="py-2.5 px-2 text-center text-xs">
-                      -- 未启用 --
-                    </td>
+                    <td className="py-2.5 px-2 text-center text-xs">--</td>
+                    <td className="py-2.5 px-2 text-center text-xs hidden sm:table-cell">--</td>
+                    <td className="py-2.5 px-2 text-center text-xs hidden sm:table-cell">--</td>
+                    <td className="py-2.5 px-2 text-center text-xs">--</td>
+                    <td className="py-2.5 px-2 text-center text-xs">--</td>
+                    <td className="py-2.5 px-2 text-center text-xs hidden sm:table-cell">--</td>
+                    <td className="py-2.5 px-2 text-center text-xs">--</td>
+                    <td className="py-2.5 px-2 text-center text-xs hidden sm:table-cell">--</td>
+                    <td className="py-2.5 px-2 text-center text-xs">--</td>
                   </tr>
                 );
               }
@@ -82,15 +88,15 @@ export default function ResultTable({
                     </span>
                   </td>
                   <td className="py-2.5 px-2 text-right">{formatCurrency(r.salary)}</td>
-                  <td className="py-2.5 px-2 text-right">{formatCurrency(r.subsidy)}</td>
-                  <td className="py-2.5 px-2 text-right">
+                  <td className="py-2.5 px-2 text-right hidden sm:table-cell">{formatCurrency(r.subsidy)}</td>
+                  <td className="py-2.5 px-2 text-right hidden sm:table-cell">
                     {formatCurrency(r.bonus + r.bonusInThisMonth)}
                   </td>
                   <td className="py-2.5 px-2 text-right">{formatCurrency(r.totalSI)}</td>
                   <td className="py-2.5 px-2 text-right">{formatCurrency(r.housingFund)}</td>
-                  <td className="py-2.5 px-2 text-right">{formatCurrency(r.cumulativeTaxableIncome)}</td>
+                  <td className="py-2.5 px-2 text-right hidden sm:table-cell">{formatCurrency(r.cumulativeTaxableIncome)}</td>
                   <td className="py-2.5 px-2 text-right">{formatCurrency(r.monthTax)}</td>
-                  <td className="py-2.5 px-2 text-right">{formatCurrency(r.cumulativeTax)}</td>
+                  <td className="py-2.5 px-2 text-right hidden sm:table-cell">{formatCurrency(r.cumulativeTax)}</td>
                   <td
                     className={`py-2.5 px-2 text-right font-medium ${
                       r.netSalary < 0 ? 'text-danger' : 'text-text'
@@ -109,13 +115,13 @@ export default function ResultTable({
                   年终奖
                 </td>
                 <td className="py-2.5 px-2 text-right">{formatCurrency(annualBonus)}</td>
+                <td className="py-2.5 px-2 text-right hidden sm:table-cell">-</td>
+                <td className="py-2.5 px-2 text-right hidden sm:table-cell">-</td>
                 <td className="py-2.5 px-2 text-right">-</td>
                 <td className="py-2.5 px-2 text-right">-</td>
-                <td className="py-2.5 px-2 text-right">-</td>
-                <td className="py-2.5 px-2 text-right">-</td>
-                <td className="py-2.5 px-2 text-right">-</td>
+                <td className="py-2.5 px-2 text-right hidden sm:table-cell">-</td>
                 <td className="py-2.5 px-2 text-right">{formatCurrency(bonusTax)}</td>
-                <td className="py-2.5 px-2 text-right">-</td>
+                <td className="py-2.5 px-2 text-right hidden sm:table-cell">-</td>
                 <td className="py-2.5 px-2 text-right font-medium">
                   {formatCurrency(annualBonus - bonusTax)}
                 </td>
@@ -126,8 +132,8 @@ export default function ResultTable({
             <tr className="border-t-2 border-border bg-bg font-semibold">
               <td className="py-3 px-2 sticky left-0 bg-bg z-10">合计</td>
               <td className="py-3 px-2 text-right">{formatCurrency(totals.salary)}</td>
-              <td className="py-3 px-2 text-right">{formatCurrency(totals.subsidy)}</td>
-              <td className="py-3 px-2 text-right">
+              <td className="py-3 px-2 text-right hidden sm:table-cell">{formatCurrency(totals.subsidy)}</td>
+              <td className="py-3 px-2 text-right hidden sm:table-cell">
                 {formatCurrency(
                   totals.bonus +
                     (bonusTaxMethod === 'separate' ? annualBonus : 0)
@@ -135,9 +141,9 @@ export default function ResultTable({
               </td>
               <td className="py-3 px-2 text-right">{formatCurrency(totals.totalSI)}</td>
               <td className="py-3 px-2 text-right">{formatCurrency(totals.housingFund)}</td>
-              <td className="py-3 px-2 text-right">-</td>
+              <td className="py-3 px-2 text-right hidden sm:table-cell">-</td>
               <td className="py-3 px-2 text-right">{formatCurrency(results.totalTax)}</td>
-              <td className="py-3 px-2 text-right">-</td>
+              <td className="py-3 px-2 text-right hidden sm:table-cell">-</td>
               <td className="py-3 px-2 text-right text-success">
                 {formatCurrency(results.totalNet)}
               </td>

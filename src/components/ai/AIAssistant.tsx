@@ -83,7 +83,7 @@ export default function AIAssistant({
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
-                className={`flex-1 px-3 py-2.5 text-sm font-medium transition-colors ${
+                className={`flex-1 px-3 py-3 text-sm font-medium transition-colors ${
                   activeTab === tab.key
                     ? 'border-b-2 border-[#667eea] text-[#667eea]'
                     : 'text-text-secondary hover:text-text'
@@ -95,7 +95,7 @@ export default function AIAssistant({
           </div>
 
           {/* Content */}
-          <div className="p-5">
+          <div className="p-3 sm:p-5">
             {activeTab === 'smart-input' && (
               <AISmartInput apiKey={apiKey} onApply={onApplySmartInput} callAI={callAI} />
             )}

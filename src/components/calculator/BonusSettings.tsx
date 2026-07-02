@@ -22,7 +22,7 @@ export default function BonusSettings({
   const showWarning = bonusTaxMethod === 'combined' && !enabledMonths[bonusMonth];
 
   return (
-    <div id="bonus-settings" className="bg-bg-card rounded-xl p-6 shadow-sm border border-border">
+    <div id="bonus-settings" className="bg-bg-card rounded-xl p-3 sm:p-6 shadow-sm border border-border">
       <h3 className="text-base font-semibold text-text mb-4">年终奖设置</h3>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
@@ -34,7 +34,7 @@ export default function BonusSettings({
             value={annualBonus || ''}
             onChange={(e) => setAnnualBonus(Number(e.target.value) || 0)}
             placeholder="0"
-            className="h-9 px-3 rounded-lg border border-border bg-bg-card text-sm text-text
+            className="h-10 px-3 rounded-lg border border-border bg-bg-card text-sm text-text
                        focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary
                        transition-colors"
           />
@@ -46,7 +46,7 @@ export default function BonusSettings({
           <select
             value={bonusMonth}
             onChange={(e) => setBonusMonth(Number(e.target.value))}
-            className="h-9 px-3 rounded-lg border border-border bg-bg-card text-sm text-text
+            className="h-10 px-3 rounded-lg border border-border bg-bg-card text-sm text-text
                        focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary
                        transition-colors"
           >
@@ -62,8 +62,8 @@ export default function BonusSettings({
       {/* Tax method radio */}
       <div className="flex flex-col gap-2">
         <label className="text-sm text-text-secondary">计税方式</label>
-        <div className="flex gap-4">
-          <label className="flex items-center gap-2 cursor-pointer">
+        <div className="flex flex-wrap gap-x-6 gap-y-2">
+          <label className="flex items-center gap-2 cursor-pointer py-1">
             <input
               type="radio"
               name="bonusTaxMethod"
@@ -74,7 +74,7 @@ export default function BonusSettings({
             />
             <span className="text-sm text-text">单独计税</span>
           </label>
-          <label className="flex items-center gap-2 cursor-pointer">
+          <label className="flex items-center gap-2 cursor-pointer py-1">
             <input
               type="radio"
               name="bonusTaxMethod"

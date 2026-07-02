@@ -39,14 +39,14 @@ export default function MonthSelector({
         <div className="flex gap-2">
           <button
             onClick={selectAllMonths}
-            className="px-3 py-1 text-xs rounded-md border border-border text-text-secondary
+            className="px-3 py-2 text-xs rounded-md border border-border text-text-secondary
                        hover:bg-bg-hover transition-colors cursor-pointer"
           >
             全选
           </button>
           <button
             onClick={selectNoneMonths}
-            className="px-3 py-1 text-xs rounded-md border border-border text-text-secondary
+            className="px-3 py-2 text-xs rounded-md border border-border text-text-secondary
                        hover:bg-bg-hover transition-colors cursor-pointer"
           >
             全不选
@@ -64,7 +64,7 @@ export default function MonthSelector({
               key={month}
               onClick={() => toggleMonth(month)}
               className={`
-                px-3 py-1.5 rounded-lg text-sm font-medium transition-all cursor-pointer
+                px-3 py-2.5 rounded-lg text-sm font-medium transition-all cursor-pointer
                 ${
                   enabled
                     ? withData

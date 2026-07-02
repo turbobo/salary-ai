@@ -63,7 +63,7 @@ export default function ResultSummary({
   ];
 
   return (
-    <div className="bg-bg-card rounded-xl p-6 shadow-sm border border-border">
+    <div className="bg-bg-card rounded-xl p-3 sm:p-6 shadow-sm border border-border">
       <h3 className="text-base font-semibold text-text mb-4">计算结果</h3>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
@@ -73,7 +73,7 @@ export default function ResultSummary({
             className={`rounded-xl p-4 bg-gradient-to-br ${card.gradient} border border-border/50`}
           >
             <p className="text-xs text-text-secondary mb-1">{card.label}</p>
-            <p className={`text-lg font-bold ${card.textColor}`}>
+            <p className={`text-base sm:text-lg font-bold ${card.textColor}`}>
               {formatCurrency(card.value)}
             </p>
             {card.sub && (
